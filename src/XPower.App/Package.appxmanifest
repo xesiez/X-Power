@@ -11,5 +11,8 @@
       <uap:SplashScreen Image="Assets\SplashScreen.png" />
     </uap:VisualElements>
   </Application></Applications>
-  <Capabilities><Capability Name="internetClient" /></Capabilities>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer" />
+  </Capabilities>
 </Package>
