@@ -1,6 +1,8 @@
 using System;
 using System.Text;
 using Windows.Networking.Sockets;
+using Windows.System;
+using Windows.UI.Core;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -16,11 +18,15 @@ namespace XPower
         {
             InitializeComponent();
             Loaded += MainPage_Loaded;
+            Unloaded += MainPage_Unloaded;
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= MainPage_Loaded;
+            // Xbox is a controller-first surface. Keep focus navigation visible and suppress the desktop-style cursor.
+            Window.Current.CoreWindow.PointerCursor = null;
+            HomeNavButton.Focus(FocusState.Programmatic);
             try
             {
                 _httpProbeListener = new StreamSocketListener();
@@ -39,7 +45,28 @@ namespace XPower
             }
         }
 
-        private async void HttpProbeListener_ConnectionReceived(
+        private void MainPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_httpProbeListener != null)
+            {
+                _httpProbeListener.ConnectionReceived -= HttpProbeListener_ConnectionReceived;
+                _httpProbeListener.Dispose();
+                _httpProbeListener = null;
+            }
+        }
+
+        private void MainPage_KeyDown(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            // Keep B as a predictable back-to-home action. D-pad and A use the native XAML focus system.
+            if (e.Key == VirtualKey.GamepadB || e.Key == VirtualKey.Escape || e.Key == VirtualKey.Back)
+            {
+                ShowSection("Home");
+                HomeNavButton.Focus(FocusState.Programmatic);
+                e.Handled = true;
+            }
+        }
+
+        private void HttpProbeListener_ConnectionReceived(
             StreamSocketListener sender,
             StreamSocketListenerConnectionReceivedEventArgs args)
         {
@@ -88,14 +115,44 @@ namespace XPower
         {
             var button = sender as Button;
             if (button == null) return;
+            ShowSection(button.Tag as string ?? "Home");
+        }
 
-            string section = button.Tag as string ?? "Home";
-            PageTitle.Text = section == "Home" ? "Welcome to X-Power" : section;
-            if (section == "Files")
+        private void ShowSection(string section)
+        {
+            HomeNavButton.Background = section == "Home" ? new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 25, 54, 74)) : new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Transparent);
+            FilesNavButton.Background = section == "Files" ? new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 25, 54, 74)) : new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Transparent);
+            PhoneNavButton.Background = section == "Phone Transfer" ? new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 25, 54, 74)) : new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Transparent);
+            MusicNavButton.Background = section == "Music" ? new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 25, 54, 74)) : new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Transparent);
+            SettingsNavButton.Background = section == "Settings" ? new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 25, 54, 74)) : new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Transparent);
+
+            HomeNavButton.Foreground = section == "Home" ? (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"] : (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["PrimaryTextBrush"];
+            FilesNavButton.Foreground = section == "Files" ? (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"] : (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["PrimaryTextBrush"];
+            PhoneNavButton.Foreground = section == "Phone Transfer" ? (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"] : (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["SecondaryTextBrush"];
+            MusicNavButton.Foreground = section == "Music" ? (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"] : (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["SecondaryTextBrush"];
+            SettingsNavButton.Foreground = section == "Settings" ? (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["AccentBrush"] : (Windows.UI.Xaml.Media.Brush)Application.Current.Resources["SecondaryTextBrush"];
+
+            PageTitle.Text = section == "Home" ? "Console workspace" : section;
+            switch (section)
             {
-                // The real StorageFolder/file-picker workflow is intentionally deferred
-                // until the foundation build is verified on Xbox hardware.
-                PageTitle.Text = "Files — foundation view";
+                case "Home":
+                    SectionFeedback.Text = "Dashboard · Xbox controller navigation enabled";
+                    break;
+                case "Files":
+                    SectionFeedback.Text = "File Explorer foundation · real storage browsing is the next implementation step";
+                    break;
+                case "Phone Transfer":
+                    SectionFeedback.Text = "Phone Transfer · secure pairing and file transfer are not enabled yet";
+                    break;
+                case "Music":
+                    SectionFeedback.Text = "Music · playback controls are not implemented yet";
+                    break;
+                case "Settings":
+                    SectionFeedback.Text = "Settings · configuration controls are not implemented yet";
+                    break;
+                default:
+                    SectionFeedback.Text = "Section unavailable";
+                    break;
             }
         }
     }
