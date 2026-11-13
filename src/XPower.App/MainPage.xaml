@@ -176,10 +176,10 @@
               <StackPanel Spacing="5">
                 <TextBlock Text="FILE EXPLORER" FontSize="11" FontWeight="SemiBold" CharacterSpacing="150" Foreground="{StaticResource AccentBrush}"/>
                 <TextBlock Text="Browse available storage" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                <TextBlock Text="Browse X-Power app storage and connected USB devices. Xbox keeps system and other apps' private folders protected." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                <TextBlock Text="Browse internal storage and connected USB devices. Xbox keeps system and other apps' private folders protected." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="9">
-                <Button x:Name="AppStorageButton" Click="AppStorage_Click" Background="{StaticResource ThemeColor13Brush}" Foreground="{StaticResource AccentBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE8B7;  APP STORAGE"/>
+                <Button x:Name="AppStorageButton" Click="AppStorage_Click" Background="{StaticResource ThemeColor13Brush}" Foreground="{StaticResource AccentBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE8B7;  INTERNAL STORAGE"/>
                 <Button x:Name="UsbStorageButton" Click="UsbStorage_Click" Background="{StaticResource ThemeColor14Brush}" Foreground="{StaticResource ThemeColor15Brush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE88E;  USB DEVICES"/>
                 <Button x:Name="ExplorerUpButton" Click="ExplorerUp_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE74A;  UP" IsEnabled="False"/>
                 <Button Click="ExplorerRefresh_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE72C;  REFRESH"/>

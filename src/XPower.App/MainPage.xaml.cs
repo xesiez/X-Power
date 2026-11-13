@@ -86,10 +86,15 @@ namespace XPower
             {
                 LoadSettings();
                 ApplyTheme(ThemeToggle.IsOn);
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => ApplyWallpaper(WallpaperComboBox.SelectedIndex));
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                {
+                    if (_isPageActive)
+                        ApplyWallpaper(WallpaperComboBox.SelectedIndex);
+                });
             }
             catch (Exception ex)
             {
+                if (!_isPageActive) return;
                 SettingsStatusText.Text = "Preferences could not be loaded; defaults are active. " + ex.Message;
                 try { ApplyTheme(false); } catch { }
             }
@@ -498,7 +503,6 @@ namespace XPower
             StorageFolder previous = _folderHistory.Peek();
             if (previous == null)
             {
-                _folderHistory.Pop();
                 await LoadExplorerRootsAsync();
                 return;
             }
@@ -597,25 +601,29 @@ namespace XPower
 
         private async void PreviewExplorerFile_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedExplorerFile == null) return;
+            StorageFile file = _selectedExplorerFile;
+            if (file == null || !_isPageActive) return;
+            int requestVersion = _explorerRequestVersion;
             try
             {
-                string extension = _selectedExplorerFile.FileType.ToLowerInvariant();
+                string extension = file.FileType.ToLowerInvariant();
                 var dialog = new ContentDialog
                 {
-                    Title = _selectedExplorerFile.Name,
+                    Title = file.Name,
                     PrimaryButtonText = "Close",
                     DefaultButton = ContentDialogButton.Primary
                 };
                 if (extension == ".txt" || extension == ".log")
                 {
-                    var properties = await _selectedExplorerFile.GetBasicPropertiesAsync();
+                    var properties = await file.GetBasicPropertiesAsync();
+                    if (!CanApplyExplorerRequest(requestVersion) || !Object.ReferenceEquals(_selectedExplorerFile, file)) return;
                     if (properties.Size > 1024 * 1024)
                     {
                         ExplorerSummaryText.Text = "Preview is limited to text files up to 1 MB.";
                         return;
                     }
-                    string content = await FileIO.ReadTextAsync(_selectedExplorerFile);
+                    string content = await FileIO.ReadTextAsync(file);
+                    if (!CanApplyExplorerRequest(requestVersion) || !Object.ReferenceEquals(_selectedExplorerFile, file)) return;
                     dialog.Content = new ScrollViewer
                     {
                         MaxHeight = 520,
@@ -631,8 +639,9 @@ namespace XPower
                 else
                 {
                     var bitmap = new BitmapImage();
-                    using (var stream = await _selectedExplorerFile.OpenAsync(FileAccessMode.Read))
+                    using (var stream = await file.OpenAsync(FileAccessMode.Read))
                         await bitmap.SetSourceAsync(stream);
+                    if (!CanApplyExplorerRequest(requestVersion) || !Object.ReferenceEquals(_selectedExplorerFile, file)) return;
                     dialog.Content = new Image
                     {
                         Source = bitmap,
@@ -641,11 +650,13 @@ namespace XPower
                         MaxHeight = 520
                     };
                 }
-                await dialog.ShowAsync();
+                if (CanApplyExplorerRequest(requestVersion) && Object.ReferenceEquals(_selectedExplorerFile, file))
+                    await dialog.ShowAsync();
             }
             catch (Exception ex)
             {
-                ExplorerSummaryText.Text = "Preview unavailable: " + ex.Message;
+                if (CanApplyExplorerRequest(requestVersion) && Object.ReferenceEquals(_selectedExplorerFile, file))
+                    ExplorerSummaryText.Text = "Preview unavailable: " + ex.Message;
             }
         }
 

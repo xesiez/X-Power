@@ -61,8 +61,10 @@ namespace XPower.Storage
                     if (folder == null)
                         continue;
 
+                    // StorageFolder.Path is the stable identity when the platform exposes it.
+                    // Fall back to a session-scoped ID rather than a potentially colliding name.
                     string rootIdentity = String.IsNullOrWhiteSpace(folder.Path)
-                        ? Uri.EscapeDataString(folder.Name)
+                        ? Guid.NewGuid().ToString("N")
                         : Uri.EscapeDataString(folder.Path);
                     roots.Add(new StorageRoot(
                         "removable:" + rootIdentity,
