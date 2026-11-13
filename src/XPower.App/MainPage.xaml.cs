@@ -538,6 +538,7 @@ namespace XPower
             SetBrush("SuccessBrush", light ? "#18794E" : "#70E0A5");
             SetBrush("WarningBrush", light ? "#8A5A00" : "#F2C879");
             SetBrush("DangerBrush", light ? "#B42332" : "#FF7E8A");
+            ApplyAccent(AccentComboBox.SelectedIndex);
 
             string[] dark = new string[] {
                 "#153C45","#2C7779","#173B43","#15372F","#2A5C4B","#122A38","#286071","#07141D",
