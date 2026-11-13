@@ -37,6 +37,7 @@
     <DefineConstants>TRACE;NETFX_CORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Assets\Wallpapers\*.jpg" />
     <Content Include="Assets\SplashScreen.png" />
     <Content Include="Assets\Square150x150Logo.png" />
     <Content Include="Assets\Square44x44Logo.png" />

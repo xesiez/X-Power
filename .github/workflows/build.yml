@@ -1,12 +1,15 @@
-name: X-Power Foundation Build
+name: X-Power Test and Build
+
 on:
   push:
-    branches: [ main, foundation-v1 ]
+    branches: [ main, foundation-v1, ux-rebuild-v2 ]
   pull_request:
     branches: [ main, foundation-v1 ]
   workflow_dispatch:
+
 jobs:
-  build:
+  test:
+    name: Test - Xbox x64 validation
     runs-on: windows-2022
     steps:
       - name: Checkout
@@ -17,6 +20,59 @@ jobs:
         with:
           msbuild-architecture: x64
 
+      - name: Validate UWP metadata, Xbox compatibility and x64 target
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          [xml](Get-Content .\src\XPower.App\Package.appxmanifest -Raw) | Out-Null
+          [xml](Get-Content .\src\XPower.App\XPower.App.csproj -Raw) | Out-Null
+          [xml](Get-Content .\src\XPower.App\App.xaml -Raw) | Out-Null
+          [xml](Get-Content .\src\XPower.App\MainPage.xaml -Raw) | Out-Null
+          $app = Get-Content .\src\XPower.App\App.xaml.cs -Raw
+          $page = Get-Content .\src\XPower.App\MainPage.xaml -Raw
+          $code = Get-Content .\src\XPower.App\MainPage.xaml.cs -Raw
+          $project = [xml](Get-Content .\src\XPower.App\XPower.App.csproj -Raw)
+          $manifest = [xml](Get-Content .\src\XPower.App\Package.appxmanifest -Raw)
+          $platforms = $project.Project.PropertyGroup | Where-Object { $_.RuntimeIdentifiers } | ForEach-Object { $_.RuntimeIdentifiers }
+          if (($platforms -join ';') -notmatch 'win10-x64') { throw "The app must target win10-x64." }
+          if ($platforms -join ';' -match 'arm|x86') { throw "Non-x64 runtime identifiers are not allowed." }
+          if ($manifest.Package.Dependencies.TargetDeviceFamily.Name -notcontains "Windows.Universal") { throw "Windows UWP target family is missing." }
+          if ($app -notmatch 'RequiresPointerMode\s*=\s*ApplicationRequiresPointerMode\.WhenRequested') { throw "Xbox pointer mode must default to XY focus navigation." }
+          if ($page -notmatch 'XYFocusKeyboardNavigation="Enabled"') { throw "XY focus keyboard navigation is not enabled." }
+          if ($code -notmatch 'ApplyExplorerFilter' -or $code -notmatch 'CopyExplorerFile_Click' -or $code -notmatch 'PreviewExplorerFile_Click' -or $code -notmatch 'PlayExplorerFile_Click') { throw "Explorer search, copy, preview or media handoff is incomplete." }
+          if ($page -notmatch 'WallpaperComboBox' -or $code -notmatch 'ApplyWallpaper') { throw "The bundled wallpaper selector is incomplete." }
+          if ($code -match 'NetworkInformation\.|GetHostNames\(') { throw "Unsupported Xbox UWP network API call detected." }
+          if ($page -notmatch 'XboxIpTextBox' -or $code -notmatch 'BuildHealthUrl') { throw "Phone Link IPv4 fallback is incomplete." }
+          if (-not (Test-Path .\tools\Generate-Wallpapers.ps1)) { throw "Wallpaper asset generator is missing." }
+          Write-Host "STATIC_TESTS=PASS TARGET=x64"
+
+      - name: Compile test - Release x64
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          msbuild .\XPower.sln /restore /m /t:Build /p:Configuration=Release /p:Platform=x64 /v:minimal
+          if ($LASTEXITCODE -ne 0) { throw "Release x64 compile test failed." }
+          Write-Host "COMPILE_TEST=PASS"
+
+  build:
+    name: Build - Xbox x64 install package
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      - name: Generate X-Power wallpaper assets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Generate-Wallpapers.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Wallpaper asset generation failed." }
+
       - name: Create temporary development signing certificate
         shell: pwsh
         run: |
@@ -24,7 +80,6 @@ jobs:
           $certDir = Join-Path $env:RUNNER_TEMP "xpower-signing"
           $packageDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\AppPackages"
           New-Item -ItemType Directory -Force -Path $certDir, $packageDir | Out-Null
-
           $cert = New-SelfSignedCertificate `
             -Type Custom `
             -Subject "CN=XPowerFoundation" `
@@ -35,13 +90,11 @@ jobs:
             -FriendlyName "X-Power temporary development signing" `
             -NotAfter (Get-Date).AddYears(1) `
             -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3")
-
           $pfxPath = Join-Path $certDir "XPower_Dev.pfx"
           $cerPath = Join-Path $packageDir "XPower_Dev.cer"
           $password = ConvertTo-SecureString ([guid]::NewGuid().ToString("N")) -AsPlainText -Force
           Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $password | Out-Null
           Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
-
           "XPOWER_PFX_PATH=$pfxPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "XPOWER_PACKAGE_DIR=$packageDir\" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           $passwordText = [System.Net.NetworkCredential]::new('', $password).Password
@@ -56,36 +109,66 @@ jobs:
           New-Item -ItemType Directory -Force -Path $logDir | Out-Null
           $binlog = Join-Path $logDir "xpower-packaging.binlog"
           $textLog = Join-Path $logDir "xpower-packaging.log"
-
           msbuild .\XPower.sln /restore /m /p:Configuration=Release /p:Platform=x64 /p:AppxPackage=true /p:GenerateAppxPackageOnBuild=true /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:AppxPackageSigningEnabled=true "/p:PackageCertificateKeyFile=$env:XPOWER_PFX_PATH" "/p:PackageCertificatePassword=$env:XPOWER_CERT_PASSWORD" "/p:AppxPackageDir=$env:XPOWER_PACKAGE_DIR" "/bl:$binlog" /v:diag *> $textLog
           $buildExitCode = $LASTEXITCODE
-          Get-Content $textLog -Tail 100
-          if ($buildExitCode -ne 0) { throw "MSBuild packaging failed with exit code $buildExitCode. Diagnostic logs are uploaded even on failure." }
+          Get-Content $textLog -Tail 80
+          if ($buildExitCode -ne 0) { throw "MSBuild packaging failed with exit code $buildExitCode." }
 
-          $packages = Get-ChildItem -Path $env:XPOWER_PACKAGE_DIR -File -Recurse | Where-Object {
-            ($_.Extension -ieq ".appx" -or $_.Extension -ieq ".msix") -and
-            $_.FullName -notmatch '[\\/]+Dependencies[\\/]+'
+      - name: Test package and stage minimal Xbox installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $packageDir = $env:XPOWER_PACKAGE_DIR
+          $stageDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\XboxInstall"
+          New-Item -ItemType Directory -Force -Path $stageDir | Out-Null
+          $appPackages = @(Get-ChildItem -Path $packageDir -File -Recurse | Where-Object {
+            ($_.Extension -ieq ".msix" -or $_.Extension -ieq ".appx") -and $_.FullName -notmatch '[\\/]+Dependencies[\\/]+'
+          })
+          if ($appPackages.Count -ne 1) { throw "Expected exactly one x64 application package; found $($appPackages.Count)." }
+          $appPackage = $appPackages[0]
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($appPackage.FullName)
+          try {
+            $entry = $archive.GetEntry("AppxManifest.xml")
+            if (-not $entry) { throw "AppxManifest.xml is missing." }
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try { [xml]$innerManifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $identity = $innerManifest.Package.Identity
+            if ($identity.ProcessorArchitecture -ne "x64") { throw "Package architecture is '$($identity.ProcessorArchitecture)', expected x64." }
+            Write-Host ("PACKAGE_TEST=PASS ARCH=x64 VERSION={0}" -f $identity.Version)
+          } finally { $archive.Dispose() }
+          Copy-Item $appPackage.FullName -Destination $stageDir
+          $certPath = Join-Path $packageDir "XPower_Dev.cer"
+          if (-not (Test-Path $certPath)) { throw "Signing certificate is missing." }
+          Copy-Item $certPath -Destination $stageDir
+          $dependencyDirs = Get-ChildItem -Path $packageDir -Directory -Recurse | Where-Object { $_.Name -eq "Dependencies" }
+          foreach ($dependencyDir in $dependencyDirs) {
+            $dependencyPackages = @(Get-ChildItem -Path $dependencyDir.FullName -File -Recurse | Where-Object {
+              $_.Extension -in @(".appx", ".msix") -and $_.Name -notmatch '(?i)(x86|arm|arm64)'
+            })
+            if ($dependencyPackages.Count -gt 0) {
+              $targetDir = Join-Path $stageDir "Dependencies"
+              New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+              foreach ($dependency in $dependencyPackages) { Copy-Item $dependency.FullName -Destination $targetDir }
+            }
           }
-          if (-not $packages) { throw "MSBuild completed but no installable .appx or .msix application package was found outside the Dependencies folder." }
-
-          $certificates = Get-ChildItem -Path $env:XPOWER_PACKAGE_DIR -Filter *.cer -File -Recurse
-          if (-not $certificates) { throw "The package signing certificate (.cer) was not found." }
-
-          Write-Host "Verified application package(s):"
-          $packages | ForEach-Object { Write-Host $_.FullName }
-          Write-Host "Signing certificate(s):"
-          $certificates | ForEach-Object { Write-Host $_.FullName }
+          $staged = @(Get-ChildItem -Path $stageDir -File -Recurse)
+          if ($staged.Count -lt 2) { throw "Minimal Xbox installer package is incomplete." }
+          if ($staged | Where-Object { $_.Extension.ToLowerInvariant() -notin @(".msix", ".appx", ".cer") }) { throw "Unexpected non-installer file found in staged output." }
+          $bytes = ($staged | Measure-Object Length -Sum).Sum
+          Write-Host ("INSTALLER_FILES={0} INSTALLER_SIZE_MB={1}" -f $staged.Count, [math]::Round($bytes / 1MB, 2))
+          Write-Host "INSTALLER_STAGE_TEST=PASS"
 
       - name: Upload Xbox sideload package
-        if: success()
         uses: actions/upload-artifact@v6
         with:
-          name: X-Power-UWP-x64-Xbox-DevMode
-          path: artifacts/AppPackages/**
+          name: X-Power-Build-Output-x64
+          path: artifacts/XboxInstall/**
           if-no-files-found: error
           retention-days: 14
+          compression-level: 9
 
-      - name: Upload packaging diagnostics
+      - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v6
         with:
@@ -93,3 +176,43 @@ jobs:
           path: artifacts/diagnostics/**
           if-no-files-found: warn
           retention-days: 7
+
+  release:
+    name: Release - Xbox x64 installer
+    needs: [test, build]
+    runs-on: windows-2022
+    steps:
+      - name: Download validated build output
+        uses: actions/download-artifact@v7
+        with:
+          name: X-Power-Build-Output-x64
+          path: artifacts/XboxInstall
+
+      - name: Verify release payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = @(Get-ChildItem .\artifacts\XboxInstall -File -Recurse)
+          $app = @($files | Where-Object { $_.Extension -in @(".msix", ".appx") -and $_.FullName -notmatch '[\\/]+Dependencies[\\/]+' })
+          $cert = @($files | Where-Object { $_.Extension -ieq ".cer" })
+          if ($app.Count -ne 1 -or $cert.Count -lt 1) { throw "Release payload must contain exactly one main app package and at least one signing certificate." }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($app[0].FullName)
+          try {
+            $entry = $zip.GetEntry("AppxManifest.xml")
+            if (-not $entry) { throw "AppxManifest.xml missing from release package." }
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try { [xml]$manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            if ($manifest.Package.Identity.ProcessorArchitecture -ne "x64") { throw "Release package is not x64." }
+          } finally { $zip.Dispose() }
+          $bytes = ($files | Measure-Object Length -Sum).Sum
+          Write-Host ("RELEASE_VALIDATION=PASS FILES={0} SIZE_MB={1}" -f $files.Count, [math]::Round($bytes / 1MB, 2))
+
+      - name: Upload final Xbox x64 installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: X-Power-UWP-x64-Xbox-DevMode
+          path: artifacts/XboxInstall/**
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 9
