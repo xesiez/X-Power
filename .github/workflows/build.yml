@@ -15,4 +15,4 @@ jobs:
         uses: microsoft/setup-msbuild@v2
       - name: Build UWP x64
         shell: pwsh
-        run: msbuild .\XPower.sln /m /p:Configuration=Release /p:Platform=x64 /p:AppxPackage=false /p:GenerateAppxPackageOnBuild=false /verbosity:minimal
+        run: msbuild .\XPower.sln /restore /m /p:Configuration=Release /p:Platform=x64 /p:AppxPackage=false /p:GenerateAppxPackageOnBuild=false /verbosity:minimal
