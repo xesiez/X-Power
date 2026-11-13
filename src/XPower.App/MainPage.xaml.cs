@@ -41,7 +41,11 @@ namespace XPower
 
         public MainPage()
         {
+            // XAML can raise control events while InitializeComponent is still creating
+            // named controls. Suppress persistence until the page is fully initialized.
+            _loadingSettings = true;
             InitializeComponent();
+            _loadingSettings = false;
             ExplorerListView.ItemsSource = _explorerItems;
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
@@ -740,6 +744,7 @@ namespace XPower
 
         private void ThemeToggle_Toggled(object sender, RoutedEventArgs e)
         {
+            if (_loadingSettings || ThemeToggle == null || AccentComboBox == null) return;
             ApplyTheme(ThemeToggle.IsOn);
             SaveSettings();
         }
@@ -812,23 +817,33 @@ namespace XPower
         private void LoadSettings()
         {
             _loadingSettings = true;
-            var values = ApplicationData.Current.LocalSettings.Values;
-            object theme = values["ThemeLight"];
-            object accent = values["AccentIndex"];
-            object sort = values["SortIndex"];
-            object extensions = values["ShowExtensions"];
-            object wallpaper = values["WallpaperIndex"];
-            ThemeToggle.IsOn = theme is bool && (bool)theme;
-            AccentComboBox.SelectedIndex = accent is int ? (int)accent : 0;
-            SortComboBox.SelectedIndex = sort is int ? (int)sort : 0;
-            ShowExtensionsToggle.IsOn = !(extensions is bool) || (bool)extensions;
-            WallpaperComboBox.SelectedIndex = wallpaper is int ? Math.Max(0, Math.Min(7, (int)wallpaper)) : 0;
-            _loadingSettings = false;
+            try
+            {
+                var values = ApplicationData.Current.LocalSettings.Values;
+                object theme = values.ContainsKey("ThemeLight") ? values["ThemeLight"] : null;
+                object accent = values.ContainsKey("AccentIndex") ? values["AccentIndex"] : null;
+                object sort = values.ContainsKey("SortIndex") ? values["SortIndex"] : null;
+                object extensions = values.ContainsKey("ShowExtensions") ? values["ShowExtensions"] : null;
+                object wallpaper = values.ContainsKey("WallpaperIndex") ? values["WallpaperIndex"] : null;
+                ThemeToggle.IsOn = theme is bool && (bool)theme;
+                AccentComboBox.SelectedIndex = accent is int ? Math.Max(0, Math.Min(3, (int)accent)) : 0;
+                SortComboBox.SelectedIndex = sort is int ? Math.Max(0, Math.Min(2, (int)sort)) : 0;
+                ShowExtensionsToggle.IsOn = !(extensions is bool) || (bool)extensions;
+                WallpaperComboBox.SelectedIndex = wallpaper is int ? Math.Max(0, Math.Min(7, (int)wallpaper)) : 0;
+            }
+            finally
+            {
+                _loadingSettings = false;
+            }
             ApplyAccent(AccentComboBox.SelectedIndex);
         }
 
         private void SaveSettings()
         {
+            // Never persist settings from XAML initialization or before all controls exist.
+            if (_loadingSettings || ThemeToggle == null || AccentComboBox == null || SortComboBox == null
+                || ShowExtensionsToggle == null || WallpaperComboBox == null || SettingsStatusText == null)
+                return;
             var values = ApplicationData.Current.LocalSettings.Values;
             values["ThemeLight"] = ThemeToggle.IsOn;
             values["AccentIndex"] = AccentComboBox.SelectedIndex;
