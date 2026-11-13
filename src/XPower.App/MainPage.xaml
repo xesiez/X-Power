@@ -1,0 +1,35 @@
+<Page x:Class="XPower.MainPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="{StaticResource AppBackgroundBrush}" XYFocusKeyboardNavigation="Enabled">
+  <Grid x:Name="RootLayout" Padding="0">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="280"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <Grid.RowDefinitions><RowDefinition Height="76"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <Border Grid.RowSpan="2" Background="#0E1627" BorderBrush="#253149" BorderThickness="0,0,1,0">
+      <Grid Padding="24,28">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="28"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel><TextBlock Text="X-POWER" FontSize="30" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="2.0  /  FOUNDATION" FontSize="11" CharacterSpacing="160" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel>
+        <Button Grid.Row="2" Content="⌂   Home" Tag="Home" Click="Navigation_Click" HorizontalContentAlignment="Left" Background="#19364A" Foreground="{StaticResource AccentBrush}" FontSize="20" Padding="18,14" Margin="0,0,0,10" />
+        <Button Grid.Row="3" Content="▤   Files" Tag="Files" Click="Navigation_Click" HorizontalContentAlignment="Left" Background="Transparent" Foreground="{StaticResource PrimaryTextBrush}" FontSize="20" Padding="18,14" Margin="0,0,0,10"/>
+        <Button Grid.Row="4" Content="▣   Phone Transfer" Tag="Phone Transfer" Click="Navigation_Click" HorizontalContentAlignment="Left" Background="Transparent" Foreground="{StaticResource SecondaryTextBrush}" FontSize="20" Padding="18,14" Margin="0,0,0,10"/>
+        <Button Grid.Row="5" Content="♫   Music" Tag="Music" Click="Navigation_Click" HorizontalContentAlignment="Left" Background="Transparent" Foreground="{StaticResource SecondaryTextBrush}" FontSize="20" Padding="18,14" Margin="0,0,0,10"/>
+        <Button Grid.Row="6" Content="⚙   Settings" Tag="Settings" Click="Navigation_Click" HorizontalContentAlignment="Left" Background="Transparent" Foreground="{StaticResource SecondaryTextBrush}" FontSize="20" Padding="18,14"/>
+        <TextBlock Grid.Row="8" Text="XBOX SERIES  /  UWP" Foreground="{StaticResource SecondaryTextBrush}" FontSize="12"/>
+      </Grid>
+    </Border>
+    <Grid Grid.Column="1" Grid.Row="0" Background="#0E1627" Padding="36,0">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <TextBlock VerticalAlignment="Center" Text="⌕   Search files and folders" Foreground="{StaticResource SecondaryTextBrush}" FontSize="18"/>
+      <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="●  Local app ready" Foreground="#65D9B2" FontSize="15"/>
+    </Grid>
+    <ScrollViewer Grid.Column="1" Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="36,30">
+      <StackPanel Spacing="22">
+        <StackPanel><TextBlock x:Name="PageTitle" Text="Welcome to X-Power" FontSize="38" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="Your Xbox file space, ready when you are." FontSize="18" Foreground="{StaticResource SecondaryTextBrush}" Margin="0,8,0,0"/></StackPanel>
+        <Grid ColumnSpacing="18"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Background="{StaticResource PanelBrush}" CornerRadius="14" Padding="24"><StackPanel><TextBlock Text="▣  STORAGE" Foreground="{StaticResource AccentBrush}" FontSize="14"/><TextBlock Text="Storage overview" Foreground="{StaticResource PrimaryTextBrush}" FontSize="23" FontWeight="SemiBold" Margin="0,18,0,8"/><TextBlock Text="Storage locations will appear here." Foreground="{StaticResource SecondaryTextBrush}" FontSize="15"/></StackPanel></Border>
+          <Border Grid.Column="1" Background="{StaticResource PanelBrush}" CornerRadius="14" Padding="24"><StackPanel><TextBlock Text="▤  RECENT" Foreground="#A78BFA" FontSize="14"/><TextBlock Text="Recently opened" Foreground="{StaticResource PrimaryTextBrush}" FontSize="23" FontWeight="SemiBold" Margin="0,18,0,8"/><TextBlock Text="Your recent files will appear here." Foreground="{StaticResource SecondaryTextBrush}" FontSize="15"/></StackPanel></Border>
+          <Border Grid.Column="2" Background="{StaticResource PanelBrush}" CornerRadius="14" Padding="24"><StackPanel><TextBlock Text="✦  QUICK ACCESS" Foreground="#65D9B2" FontSize="14"/><TextBlock Text="Your shortcuts" Foreground="{StaticResource PrimaryTextBrush}" FontSize="23" FontWeight="SemiBold" Margin="0,18,0,8"/><TextBlock Text="Common locations will appear here." Foreground="{StaticResource SecondaryTextBrush}" FontSize="15"/></StackPanel></Border>
+        </Grid>
+        <Border Background="{StaticResource PanelBrush}" CornerRadius="14" Padding="24"><StackPanel Spacing="18"><TextBlock Text="Recent files" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="No files loaded yet. Open Files to choose an accessible location." FontSize="16" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel></Border>
+        <TextBlock Text="A  Select     B  Back     LB / RB  Switch sections     Y  Quick actions" Foreground="{StaticResource SecondaryTextBrush}" FontSize="14" Margin="0,8,0,12"/>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Page>
