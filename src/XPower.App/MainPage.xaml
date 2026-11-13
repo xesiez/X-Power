@@ -43,7 +43,7 @@
               <TextBlock Text="WELCOME TO X-POWER" Foreground="{StaticResource AccentBrush}" FontSize="12" CharacterSpacing="170" FontWeight="SemiBold"/>
               <TextBlock Text="Your Xbox. Your workspace." FontSize="36" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" TextWrapping="Wrap"/>
               <TextBlock Text="A clean place to manage your console files and everyday tools." FontSize="17" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
-              <TextBlock Text="FOUNDATION BUILD  •  READY FOR THE NEXT STEP" Foreground="#65D9B2" FontSize="11" CharacterSpacing="80" Margin="0,8,0,0"/>
+              <TextBlock Text="FOUNDATION BUILD  •  HTTP LAN CONNECTIVITY TEST" Foreground="#65D9B2" FontSize="11" CharacterSpacing="80" Margin="0,8,0,0"/>
             </StackPanel>
             <Border Grid.Column="1" Background="#19364A" CornerRadius="16" Padding="22" VerticalAlignment="Center" Margin="24,0,0,0">
               <StackPanel HorizontalAlignment="Center" Spacing="7">
@@ -104,9 +104,10 @@
           </Border>
           <Border Grid.Column="1" Background="#102B2B" BorderBrush="#24504A" BorderThickness="1" CornerRadius="14" Padding="22">
             <StackPanel Spacing="8">
-              <TextBlock Text="SYSTEM STATUS" Foreground="#65D9B2" FontSize="11" CharacterSpacing="130" FontWeight="SemiBold"/>
-              <TextBlock Text="Foundation online" Foreground="{StaticResource PrimaryTextBrush}" FontSize="20" FontWeight="SemiBold"/>
-              <TextBlock Text="The app launched successfully. More tools will be added in small, tested updates." Foreground="{StaticResource SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap"/>
+              <TextBlock Text="HTTP LAN PROBE" Foreground="#65D9B2" FontSize="11" CharacterSpacing="130" FontWeight="SemiBold"/>
+              <TextBlock Text="Local network listener" Foreground="{StaticResource PrimaryTextBrush}" FontSize="20" FontWeight="SemiBold"/>
+              <TextBlock x:Name="NetworkProbeStatus" Text="Starting HTTP probe…" Foreground="{StaticResource SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap"/>
+              <TextBlock Text="Health endpoint only · no file access" Foreground="{StaticResource SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap"/>
             </StackPanel>
           </Border>
         </Grid>
