@@ -88,7 +88,13 @@ jobs:
           if (-not $certificates) { throw "The package signing certificate (.cer) was not found." }
 
           Write-Host "Verified application package(s):"
-          $packages | ForEach-Object { Write-Host $_.FullName }
+          foreach ($package in $packages) {
+            $sizeMB = [math]::Round($package.Length / 1MB, 2)
+            Write-Host ("PACKAGE_SIZE_MB={0} FILE={1}" -f $sizeMB, $package.Name)
+            if ($package.Length -lt 20MB) {
+              Write-Warning ("The app package is {0} MB; the 20 MB release target is not yet met. Do not add padding assets." -f $sizeMB)
+            }
+          }
           Write-Host "Signing certificate(s):"
           $certificates | ForEach-Object { Write-Host $_.FullName }
 

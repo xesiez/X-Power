@@ -7,9 +7,12 @@ A new, independent Xbox Series X UWP application for Developer Mode. This reposi
 - Xbox-first XAML interface with Overview, File Explorer, Phone Link, Media Player, and Preferences.
 - Directional focus navigation designed for Xbox controller input.
 - D-pad and left thumbstick navigation use native UWP XY focus; A selects and B returns.
-- File picker selection with duplicate detection based on StorageFile identity. Selection is session-only and does not modify files.
-- Local audio playback for selected MP3, WAV, WMA, and M4A files.
-- Dark and light palettes applied to resource-based and formerly hard-coded UI colors.
+- In-app storage explorer for app-private storage and declared removable USB file types.
+- Folder navigation, refresh, current-folder search, sort preferences, extension visibility, file metadata and type-aware icons.
+- Copy selected USB/app files into X-Power app storage with collision-safe unique names.
+- Play supported MP3, WAV, WMA, and M4A files directly from File Explorer or the system file picker.
+- Persistent dark/light theme, four accent palettes, file sorting and extension preferences.
+- Xbox controller-first navigation and focus restoration across sections.
 - LAN health probe using an OS-selected TCP port and a read-only `GET /health` response.
 
 ## Phone Link and security boundaries
@@ -29,6 +32,10 @@ The health endpoint uses HTTP and returns non-sensitive status information only.
 
 - Figma: https://www.figma.com/design/g5XvK79Ews947gwcKNZW14
 - MagicPath: https://www.magicpath.ai/files/471841162215460864
+
+## Package size policy
+
+The x64 sideload package is measured by CI and reported as an artifact-size metric. The project will only grow through real features and useful bundled resources; no padding files, duplicate binaries, or fake payloads are added to satisfy a size target. The requested 20 MB minimum is a release acceptance target and must be met by functional offline content/assets before it is marked achieved.
 
 ## Build and validation
 

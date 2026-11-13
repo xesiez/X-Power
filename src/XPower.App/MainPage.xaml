@@ -123,7 +123,7 @@
                     <StackPanel Spacing="11">
                       <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource ThemeColor13Brush}" HorizontalAlignment="Left"><TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                       <TextBlock Text="File Explorer" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                      <TextBlock Text="Select and inspect files available to the app." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                      <TextBlock Text="Browse, search, inspect and copy files from app storage or USB." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                       <TextBlock Text="OPEN TOOL  &#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{StaticResource AccentBrush}"/>
                     </StackPanel>
                   </Border>
@@ -183,6 +183,11 @@
                 <Button x:Name="UsbStorageButton" Click="UsbStorage_Click" Background="{StaticResource ThemeColor14Brush}" Foreground="{StaticResource ThemeColor15Brush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE88E;  USB DEVICES"/>
                 <Button x:Name="ExplorerUpButton" Click="ExplorerUp_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE74A;  UP" IsEnabled="False"/>
                 <Button Click="ExplorerRefresh_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE72C;  REFRESH"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBox x:Name="ExplorerSearchBox" Width="280" PlaceholderText="Search this folder..." TextChanged="ExplorerSearchBox_TextChanged" />
+                <Button x:Name="CopyExplorerFileButton" Click="CopyExplorerFile_Click" IsEnabled="False" Background="{StaticResource ThemeColor13Brush}" Foreground="{StaticResource AccentBrush}" Padding="15,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="&#xE8C8;  COPY TO APP"/>
+                <Button x:Name="PlayExplorerFileButton" Click="PlayExplorerFile_Click" IsEnabled="False" Background="{StaticResource ThemeColor16Brush}" Foreground="{StaticResource SuccessBrush}" Padding="15,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="&#xE768;  PLAY AUDIO"/>
               </StackPanel>
               <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="16">
                 <StackPanel Spacing="10">
@@ -269,7 +274,7 @@
               <StackPanel Spacing="5">
                 <TextBlock Text="PREFERENCES" FontSize="11" FontWeight="SemiBold" CharacterSpacing="150" Foreground="{StaticResource AccentBrush}"/>
                 <TextBlock Text="Make X-Power yours" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                <TextBlock Text="Settings in this build are local to the current app session." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}"/>
+                <TextBlock Text="Your preferences are saved locally on this console." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}"/>
               </StackPanel>
               <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="22">
                 <StackPanel Spacing="16">

@@ -29,6 +29,7 @@ namespace XPower
         private string _listenerPort = String.Empty;
         private string _healthUrl = String.Empty;
         private StorageFile _currentTrack;
+        private StorageFile _selectedExplorerFile;
         private IRandomAccessStream _currentTrackStream;
         private string _currentSection = "Home";
         private bool _backHandlerAttached;
@@ -291,6 +292,9 @@ namespace XPower
             ExplorerUpButton.IsEnabled = false;
             ExplorerPathText.Text = "STORAGE LOCATIONS";
             _explorerItems.Clear();
+            _selectedExplorerFile = null;
+            UpdateExplorerActions();
+            if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
             _explorerItems.Add(new ExplorerItem { Name = "X-Power App Storage", Description = "Private app folder", Glyph = "\\uE8B7", Folder = ApplicationData.Current.LocalFolder, Trailing = "\\uE76C" });
             try
             {
@@ -319,6 +323,9 @@ namespace XPower
         {
             if (_currentFolder == null) { await LoadExplorerRootsAsync(); return; }
             _explorerItems.Clear();
+            _selectedExplorerFile = null;
+            UpdateExplorerActions();
+            if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
             try
             {
                 var folders = await _currentFolder.GetFoldersAsync();
@@ -336,7 +343,12 @@ namespace XPower
                     string name = file.Name;
                     if (!ShowExtensionsToggle.IsOn && !String.IsNullOrEmpty(file.FileType))
                         name = System.IO.Path.GetFileNameWithoutExtension(name);
-                    _explorerItems.Add(new ExplorerItem { Name = name, Description = file.FileType + " · " + file.DisplayType, Glyph = "\\uE8A5", File = file });
+                    string glyph = file.FileType == ".jpg" || file.FileType == ".jpeg" || file.FileType == ".png" || file.FileType == ".gif" ? "\uEB9F"
+                        : file.FileType == ".mp3" || file.FileType == ".wav" || file.FileType == ".wma" || file.FileType == ".m4a" ? "\uE8D6"
+                        : file.FileType == ".mp4" || file.FileType == ".m4v" ? "\uE714"
+                        : file.FileType == ".pdf" ? "\uEA90"
+                        : file.FileType == ".zip" ? "\uF012" : "\uE8A5";
+                    _explorerItems.Add(new ExplorerItem { Name = name, Description = file.FileType + " · " + file.DisplayType, Glyph = glyph, File = file });
                 }
                 if (sort == 2)
                     foreach (StorageFolder folder in folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase))
@@ -386,8 +398,96 @@ namespace XPower
         {
             ExplorerItem item = e.ClickedItem as ExplorerItem;
             if (item == null) return;
-            if (item.Folder != null) await OpenExplorerFolderAsync(item.Folder);
-            else if (item.File != null) ExplorerSummaryText.Text = "Selected: " + item.File.Name + " · " + item.File.DisplayType + " · file actions will be added in a later stage.";
+            if (item.Folder != null)
+            {
+                _selectedExplorerFile = null;
+                UpdateExplorerActions();
+                await OpenExplorerFolderAsync(item.Folder);
+                return;
+            }
+            if (item.File == null) return;
+            _selectedExplorerFile = item.File;
+            UpdateExplorerActions();
+            try
+            {
+                var properties = await item.File.GetBasicPropertiesAsync();
+                ExplorerSummaryText.Text = item.File.Name + " · " + item.File.DisplayType
+                    + " · " + FormatFileSize(properties.Size)
+                    + " · Modified " + properties.DateModified.ToLocalTime().ToString("g");
+            }
+            catch
+            {
+                ExplorerSummaryText.Text = "Selected: " + item.File.Name + " · " + item.File.DisplayType;
+            }
+        }
+
+        private void ExplorerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = ExplorerSearchBox.Text == null ? String.Empty : ExplorerSearchBox.Text.Trim();
+            if (_currentFolder == null) return;
+            foreach (var item in _explorerItems.ToList())
+            {
+                bool visible = String.IsNullOrEmpty(query)
+                    || item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!visible) _explorerItems.Remove(item);
+            }
+            if (!String.IsNullOrEmpty(query))
+                ExplorerSummaryText.Text = "Search results in the current folder · " + _explorerItems.Count + " match(es). Refresh to restore the full listing.";
+        }
+
+        private void UpdateExplorerActions()
+        {
+            bool hasFile = _selectedExplorerFile != null;
+            CopyExplorerFileButton.IsEnabled = hasFile;
+            string extension = hasFile ? _selectedExplorerFile.FileType.ToLowerInvariant() : String.Empty;
+            PlayExplorerFileButton.IsEnabled = hasFile
+                && (extension == ".mp3" || extension == ".wav" || extension == ".wma" || extension == ".m4a");
+        }
+
+        private static string FormatFileSize(ulong bytes)
+        {
+            double size = bytes;
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            int unit = 0;
+            while (size >= 1024 && unit < units.Length - 1)
+            {
+                size /= 1024;
+                unit++;
+            }
+            return size.ToString("0.##") + " " + units[unit];
+        }
+
+        private async void CopyExplorerFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedExplorerFile == null) return;
+            try
+            {
+                StorageFile copied = await _selectedExplorerFile.CopyAsync(
+                    ApplicationData.Current.LocalFolder,
+                    _selectedExplorerFile.Name,
+                    NameCollisionOption.GenerateUniqueName);
+                ExplorerSummaryText.Text = "Copied into X-Power App Storage: " + copied.Name;
+            }
+            catch (Exception ex)
+            {
+                ExplorerSummaryText.Text = "Copy failed: " + ex.Message;
+            }
+        }
+
+        private async void PlayExplorerFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedExplorerFile == null) return;
+            try
+            {
+                await LoadTrackAsync(_selectedExplorerFile);
+                ShowSection("Music");
+                AudioPlayer.Play();
+                TrackStatusText.Text = "Playing from File Explorer.";
+            }
+            catch (Exception ex)
+            {
+                ExplorerSummaryText.Text = "Unable to play this file: " + ex.Message;
+            }
         }
 
         private void RefreshNetwork_Click(object sender, RoutedEventArgs e)
@@ -456,7 +556,6 @@ namespace XPower
 
         private async void SelectTrack_Click(object sender, RoutedEventArgs e)
         {
-            IRandomAccessStream newStream = null;
             try
             {
                 var picker = new FileOpenPicker
@@ -474,7 +573,20 @@ namespace XPower
                     TrackStatusText.Text = "No track selected.";
                     return;
                 }
+                await LoadTrackAsync(file);
+                AudioPlayer.Play();
+            }
+            catch (Exception ex)
+            {
+                TrackStatusText.Text = "Unable to load audio: " + ex.Message;
+            }
+        }
 
+        private async System.Threading.Tasks.Task LoadTrackAsync(StorageFile file)
+        {
+            IRandomAccessStream newStream = null;
+            try
+            {
                 AudioPlayer.Stop();
                 if (_currentTrackStream != null)
                 {
@@ -487,14 +599,12 @@ namespace XPower
                 _currentTrack = file;
                 newStream = null;
                 TrackTitleText.Text = file.DisplayName;
-                TrackStatusText.Text = "Playing · " + file.FileType.ToUpperInvariant();
-                AudioPlayer.Play();
+                TrackStatusText.Text = "Ready · " + file.FileType.ToUpperInvariant();
             }
-            catch (Exception ex)
+            catch
             {
-                if (newStream != null)
-                    newStream.Dispose();
-                TrackStatusText.Text = "Unable to load audio: " + ex.Message;
+                if (newStream != null) newStream.Dispose();
+                throw;
             }
         }
 
@@ -544,9 +654,12 @@ namespace XPower
             SaveSettings();
         }
 
-        private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!_loadingSettings) SaveSettings();
+            if (_loadingSettings) return;
+            SaveSettings();
+            if (_currentSection == "Files" && _currentFolder != null)
+                await RefreshExplorerFolderAsync();
         }
 
         private void ShowExtensionsToggle_Toggled(object sender, RoutedEventArgs e)
