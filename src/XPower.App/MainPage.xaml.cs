@@ -27,6 +27,7 @@ namespace XPower
         private IRandomAccessStream _currentTrackStream;
         private string _currentSection = "Home";
         private bool _backHandlerAttached;
+        private bool _loadingSettings;
 
         public MainPage()
         {
@@ -34,7 +35,8 @@ namespace XPower
             FileListView.ItemsSource = _selectedFiles;
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
-            ApplyTheme(false);
+            LoadSettings();
+            ApplyTheme(ThemeToggle.IsOn);
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -458,6 +460,68 @@ namespace XPower
         private void ThemeToggle_Toggled(object sender, RoutedEventArgs e)
         {
             ApplyTheme(ThemeToggle.IsOn);
+            SaveSettings();
+        }
+
+        private void AccentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loadingSettings || AccentComboBox == null) return;
+            ApplyAccent(AccentComboBox.SelectedIndex);
+            SaveSettings();
+        }
+
+        private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_loadingSettings) SaveSettings();
+        }
+
+        private void ShowExtensionsToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (!_loadingSettings) SaveSettings();
+        }
+
+        private void ResetSettings_Click(object sender, RoutedEventArgs e)
+        {
+            ThemeToggle.IsOn = false;
+            AccentComboBox.SelectedIndex = 0;
+            SortComboBox.SelectedIndex = 0;
+            ShowExtensionsToggle.IsOn = true;
+            ApplyTheme(false);
+            ApplyAccent(0);
+            SaveSettings();
+            SettingsStatusText.Text = "Preferences reset to defaults.";
+        }
+
+        private void LoadSettings()
+        {
+            _loadingSettings = true;
+            var values = ApplicationData.Current.LocalSettings.Values;
+            object theme = values["ThemeLight"];
+            object accent = values["AccentIndex"];
+            object sort = values["SortIndex"];
+            object extensions = values["ShowExtensions"];
+            ThemeToggle.IsOn = theme is bool && (bool)theme;
+            AccentComboBox.SelectedIndex = accent is int ? (int)accent : 0;
+            SortComboBox.SelectedIndex = sort is int ? (int)sort : 0;
+            ShowExtensionsToggle.IsOn = !(extensions is bool) || (bool)extensions;
+            _loadingSettings = false;
+            ApplyAccent(AccentComboBox.SelectedIndex);
+        }
+
+        private void SaveSettings()
+        {
+            var values = ApplicationData.Current.LocalSettings.Values;
+            values["ThemeLight"] = ThemeToggle.IsOn;
+            values["AccentIndex"] = AccentComboBox.SelectedIndex;
+            values["SortIndex"] = SortComboBox.SelectedIndex;
+            values["ShowExtensions"] = ShowExtensionsToggle.IsOn;
+            SettingsStatusText.Text = "Preferences saved on this console.";
+        }
+
+        private void ApplyAccent(int index)
+        {
+            string[] colors = { "#107C10", "#52E0D0", "#A99AFF", "#65A8FF" };
+            SetBrush("AccentBrush", colors[Math.Max(0, Math.Min(index, colors.Length - 1))]);
         }
 
         private void ApplyTheme(bool light)

@@ -268,28 +268,20 @@
                 <TextBlock Text="Settings in this build are local to the current app session." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}"/>
               </StackPanel>
               <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="22">
-                <StackPanel Spacing="18">
-                  <StackPanel Orientation="Horizontal" Spacing="16">
-                    <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource ThemeColor13Brush}"><TextBlock Text="&#xE793;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                    <StackPanel VerticalAlignment="Center" Spacing="2">
-                      <TextBlock Text="Appearance" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                      <TextBlock Text="Switch between dark and light themes." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
-                    </StackPanel>
-                    <ToggleSwitch x:Name="ThemeToggle" Header="Light theme" VerticalAlignment="Center" HorizontalAlignment="Right" Toggled="ThemeToggle_Toggled"/>
-                  </StackPanel>
+                <StackPanel Spacing="16">
+                  <TextBlock Text="APPEARANCE" FontSize="10" FontWeight="SemiBold" CharacterSpacing="140" Foreground="{StaticResource AccentBrush}"/>
+                  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Light theme" FontSize="15" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="Switch between dark and light palettes." FontSize="11" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel><ToggleSwitch x:Name="ThemeToggle" Grid.Column="1" Toggled="ThemeToggle_Toggled"/></Grid>
+                  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Accent color" FontSize="15" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="Choose the interface highlight color." FontSize="11" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel><ComboBox x:Name="AccentComboBox" Grid.Column="1" SelectedIndex="0" SelectionChanged="AccentComboBox_SelectionChanged"><ComboBoxItem Content="Xbox Green"/><ComboBoxItem Content="Cyan"/><ComboBoxItem Content="Purple"/><ComboBoxItem Content="Blue"/></ComboBox></Grid>
                   <Border Height="1" Background="{StaticResource BorderBrush}"/>
-                  <StackPanel Spacing="5">
-                    <TextBlock Text="CONTROLLER INPUT" FontSize="10" FontWeight="SemiBold" CharacterSpacing="130" Foreground="{StaticResource SecondaryTextBrush}"/>
-                    <TextBlock Text="D-pad / Left Stick  ·  Navigate" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}"/>
-                    <TextBlock Text="A  ·  Select       B  ·  Back to overview" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}"/>
-                    <TextBlock Text="Pointer cursor is suppressed from app launch." FontSize="12" Foreground="{StaticResource SuccessBrush}"/>
-                  </StackPanel>
+                  <TextBlock Text="FILE EXPLORER" FontSize="10" FontWeight="SemiBold" CharacterSpacing="140" Foreground="{StaticResource AccentBrush}"/>
+                  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Sort items by" FontSize="15" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="Choose the order for files and folders." FontSize="11" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel><ComboBox x:Name="SortComboBox" Grid.Column="1" SelectedIndex="0" SelectionChanged="SortComboBox_SelectionChanged"><ComboBoxItem Content="Name (A to Z)"/><ComboBoxItem Content="Name (Z to A)"/><ComboBoxItem Content="Folders first"/></ComboBox></Grid>
+                  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Spacing="2"><TextBlock Text="Show file extensions" FontSize="15" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="Display extensions in file names." FontSize="11" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel><ToggleSwitch x:Name="ShowExtensionsToggle" Grid.Column="1" IsOn="True" Toggled="ShowExtensionsToggle_Toggled"/></Grid>
                   <Border Height="1" Background="{StaticResource BorderBrush}"/>
-                  <StackPanel Spacing="5">
-                    <TextBlock Text="APP INFORMATION" FontSize="10" FontWeight="SemiBold" CharacterSpacing="130" Foreground="{StaticResource SecondaryTextBrush}"/>
-                    <TextBlock Text="X-Power 2.0 · Xbox Series · UWP" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}"/>
-                    <TextBlock Text="Features requiring secure device pairing or additional Xbox permissions will remain clearly marked until implemented and tested." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
-                  </StackPanel>
+                  <TextBlock Text="CONTROLLER & SYSTEM" FontSize="10" FontWeight="SemiBold" CharacterSpacing="140" Foreground="{StaticResource AccentBrush}"/>
+                  <TextBlock Text="D-pad / Left Stick · Navigate    A · Select    B · Back" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                  <TextBlock Text="X-Power 2.1 · Xbox Series · UWP" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
+                  <Button Click="ResetSettings_Click" HorizontalAlignment="Left" Background="{StaticResource DangerBrush}" Foreground="{StaticResource ThemeColor08Brush}" Padding="16,9" BorderThickness="0" Content="RESET PREFERENCES"/>
+                  <TextBlock x:Name="SettingsStatusText" Text="Preferences are saved on this console." FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
                 </StackPanel>
               </Border>
             </StackPanel>
