@@ -59,7 +59,7 @@
               <TextBlock Text="XBOX DEV MODE" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}"/>
             </StackPanel>
             <TextBlock Text="Controller-first interface" FontSize="11" Foreground="{StaticResource SecondaryTextBrush}"/>
-            <TextBlock Text="X-POWER  /  2.2" FontSize="10" CharacterSpacing="90" Foreground="{StaticResource SecondaryTextBrush}" Margin="0,6,0,0"/>
+            <TextBlock Text="X-POWER  /  2.2.1" FontSize="10" CharacterSpacing="90" Foreground="{StaticResource SecondaryTextBrush}" Margin="0,6,0,0"/>
           </StackPanel>
         </Border>
       </Grid>
@@ -290,7 +290,7 @@
                   <Border Height="1" Background="{StaticResource BorderBrush}"/>
                   <TextBlock Text="CONTROLLER &amp; SYSTEM" FontSize="10" FontWeight="SemiBold" CharacterSpacing="140" Foreground="{StaticResource AccentBrush}"/>
                   <TextBlock Text="D-pad / Left Stick · Navigate    A · Select    B · Back" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}" TextWrapping="Wrap"/>
-                  <TextBlock Text="X-Power 2.2 · Xbox Series · UWP" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
+                  <TextBlock Text="X-Power 2.2.1 · Xbox Series · UWP" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
                   <Button Click="ResetSettings_Click" HorizontalAlignment="Left" Background="{StaticResource DangerBrush}" Foreground="{StaticResource ThemeColor08Brush}" Padding="16,9" BorderThickness="0" Content="RESET PREFERENCES"/>
                   <TextBlock x:Name="SettingsStatusText" Text="Preferences are saved on this console." FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
                 </StackPanel>
