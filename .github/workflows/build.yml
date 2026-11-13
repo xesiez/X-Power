@@ -44,7 +44,9 @@ jobs:
 
           "XPOWER_PFX_PATH=$pfxPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "XPOWER_PACKAGE_DIR=$packageDir\" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "XPOWER_CERT_PASSWORD=$([System.Net.NetworkCredential]::new('', $password).Password)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $passwordText = [System.Net.NetworkCredential]::new('', $password).Password
+          Write-Host "::add-mask::$passwordText"
+          "XPOWER_CERT_PASSWORD=$passwordText" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build and package UWP x64 for Xbox Developer Mode
         shell: pwsh
