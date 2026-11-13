@@ -56,19 +56,20 @@ namespace XPower.Storage
                 IReadOnlyList<StorageFolder> removableFolders =
                     await KnownFolders.RemovableDevices.GetFoldersAsync();
 
-                int index = 0;
                 foreach (StorageFolder folder in removableFolders)
                 {
                     if (folder == null)
                         continue;
 
+                    string rootIdentity = String.IsNullOrWhiteSpace(folder.Path)
+                        ? Uri.EscapeDataString(folder.Name)
+                        : Uri.EscapeDataString(folder.Path);
                     roots.Add(new StorageRoot(
-                        "removable-" + index.ToString(),
+                        "removable:" + rootIdentity,
                         folder.Name,
                         "Removable USB storage",
                         folder,
                         StorageRootKind.Removable));
-                    index++;
                 }
             }
             catch (UnauthorizedAccessException)

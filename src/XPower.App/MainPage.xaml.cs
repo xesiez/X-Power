@@ -18,6 +18,7 @@ using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using XPower.Storage;
+using XPower.Models;
 
 namespace XPower
 {
@@ -41,6 +42,9 @@ namespace XPower
         private bool _loadingSettings = true;
         private bool _isViewReady;
         private bool _explorerRootsLoaded;
+        private bool _showingUsbRoots;
+        private bool _isPageActive;
+        private int _explorerRequestVersion;
         private bool _startingHealthService;
 
         public MainPage()
@@ -68,6 +72,7 @@ namespace XPower
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
+            _isPageActive = true;
             HomeNavButton.Focus(FocusState.Programmatic);
             if (!_backHandlerAttached)
             {
@@ -131,6 +136,8 @@ namespace XPower
 
         private void MainPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            _isPageActive = false;
+            _explorerRequestVersion++;
             if (_backHandlerAttached)
             {
                 SystemNavigationManager.GetForCurrentView().BackRequested -= SystemNavigationManager_BackRequested;
@@ -300,11 +307,10 @@ namespace XPower
                 : section == "Music" ? "MEDIA PLAYER" : section.ToUpperInvariant());
 
             FocusSection(section);
-            if (section == "Files" && !_explorerRootsLoaded)
-            {
-                _explorerRootsLoaded = true;
+            if (section != "Files")
+                _explorerRequestVersion++;
+            if (section == "Files" && !_explorerRootsLoaded && _isPageActive)
                 LoadExplorerRootsAsync();
-            }
             if (section == "Phone Transfer")
             {
                 StartHealthService();
@@ -335,98 +341,146 @@ namespace XPower
 
         private async System.Threading.Tasks.Task LoadExplorerRootsAsync()
         {
-            _folderHistory.Clear();
-            _currentFolder = null;
-            ExplorerUpButton.IsEnabled = false;
-            ExplorerPathText.Text = "STORAGE LOCATIONS";
-            _explorerItems.Clear();
-            _allExplorerItems.Clear();
-            _selectedExplorerFile = null;
-            UpdateExplorerActions();
-            if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
+            int requestVersion = ++_explorerRequestVersion;
             try
             {
                 IReadOnlyList<StorageRoot> roots = await _storageService.GetRootsAsync();
+                if (!CanApplyExplorerRequest(requestVersion)) return;
+                var rootItems = new List<ExplorerItem>();
                 int removableCount = 0;
                 foreach (StorageRoot root in roots)
                 {
-                    bool isRemovable = root.Kind == StorageRootKind.Removable;
-                    if (isRemovable) removableCount++;
-                    _explorerItems.Add(new ExplorerItem
+                    bool removable = root.Kind == StorageRootKind.Removable;
+                    if (removable) removableCount++;
+                    rootItems.Add(new ExplorerItem
                     {
-                        Name = root.Name,
-                        Description = root.Description,
-                        Glyph = isRemovable ? "\uE88E" : "\uE8B7",
-                        Folder = root.Folder,
-                        Trailing = "\uE76C"
+                        Id = root.Id, Name = root.Name, Description = root.Description,
+                        Glyph = removable ? "\uE88E" : "\uE8B7", Folder = root.Folder,
+                        Trailing = "\uE76C", Kind = ExplorerItemKind.StorageRoot, RootKind = root.Kind
                     });
                 }
+                _explorerRootsLoaded = true;
+                _currentFolder = null;
+                _folderHistory.Clear();
+                ExplorerUpButton.IsEnabled = false;
+                ExplorerPathText.Text = _showingUsbRoots ? "USB DEVICES" : "STORAGE LOCATIONS";
+                SetExplorerItems(_showingUsbRoots
+                    ? rootItems.Where(item => item.RootKind == StorageRootKind.Removable).ToList()
+                    : rootItems);
                 ExplorerSummaryText.Text = removableCount + " USB device(s) detected · Internal storage available";
             }
             catch (Exception ex)
             {
+                if (!CanApplyExplorerRequest(requestVersion)) return;
+                _explorerRootsLoaded = false;
                 ExplorerSummaryText.Text = "Storage locations unavailable: " + ex.Message;
             }
-            _allExplorerItems.AddRange(_explorerItems);
+        }
+
+        private bool CanApplyExplorerRequest(int requestVersion)
+        {
+            return _isPageActive && _currentSection == "Files" && requestVersion == _explorerRequestVersion;
+        }
+
+        private void SetExplorerItems(IEnumerable<ExplorerItem> items)
+        {
+            _explorerItems.Clear();
+            _allExplorerItems.Clear();
+            _allExplorerItems.AddRange(items);
+            _selectedExplorerFile = null;
+            UpdateExplorerActions();
+            if (ExplorerSearchBox != null && !String.IsNullOrEmpty(ExplorerSearchBox.Text))
+                ExplorerSearchBox.Text = String.Empty;
+            ApplyExplorerFilter();
+        }
+
+        private async System.Threading.Tasks.Task<IReadOnlyList<ExplorerItem>> GetFolderItemsAsync(StorageFolder folder, int sort, bool showExtensions)
+        {
+            var folders = await _storageService.GetFoldersAsync(folder);
+            var files = await _storageService.GetFilesAsync(folder);
+            var result = new List<ExplorerItem>();
+            IEnumerable<StorageFolder> orderedFolders = sort == 1
+                ? folders.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase)
+                : folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
+            if (sort != 2)
+                foreach (StorageFolder child in orderedFolders)
+                    result.Add(new ExplorerItem { Id = "folder:" + child.Name, Name = child.Name, Description = "Folder",
+                        Glyph = "\uE8B7", Folder = child, Trailing = "\uE76C", Kind = ExplorerItemKind.Folder });
+
+            IEnumerable<StorageFile> orderedFiles = sort == 1
+                ? files.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase)
+                : files.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
+            foreach (StorageFile file in orderedFiles)
+            {
+                string name = file.Name;
+                if (!showExtensions && !String.IsNullOrEmpty(file.FileType))
+                    name = System.IO.Path.GetFileNameWithoutExtension(name);
+                string glyph = file.FileType == ".jpg" || file.FileType == ".jpeg" || file.FileType == ".png" || file.FileType == ".gif" ? "\uEB9F"
+                    : file.FileType == ".mp3" || file.FileType == ".wav" || file.FileType == ".wma" || file.FileType == ".m4a" ? "\uE8D6"
+                    : file.FileType == ".mp4" || file.FileType == ".m4v" ? "\uE714"
+                    : file.FileType == ".pdf" ? "\uEA90"
+                    : file.FileType == ".zip" ? "\uF012" : "\uE8A5";
+                result.Add(new ExplorerItem { Id = "file:" + file.Name, Name = name,
+                    Description = file.FileType + " · " + file.DisplayType, Glyph = glyph, File = file, Kind = ExplorerItemKind.File });
+            }
+            if (sort == 2)
+                foreach (StorageFolder child in folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase))
+                    result.Insert(0, new ExplorerItem { Id = "folder:" + child.Name, Name = child.Name, Description = "Folder",
+                        Glyph = "\uE8B7", Folder = child, Trailing = "\uE76C", Kind = ExplorerItemKind.Folder });
+            return result;
         }
 
         private async System.Threading.Tasks.Task OpenExplorerFolderAsync(StorageFolder folder)
         {
-            if (folder == null) return;
-            _folderHistory.Push(_currentFolder);
-            _currentFolder = folder;
-            ExplorerPathText.Text = folder.Name;
-            ExplorerUpButton.IsEnabled = true;
-            await RefreshExplorerFolderAsync();
+            if (folder == null || !_isPageActive || _currentSection != "Files") return;
+            int version = ++_explorerRequestVersion;
+            int sort = SortComboBox.SelectedIndex;
+            bool extensions = ShowExtensionsToggle.IsOn;
+            try
+            {
+                IReadOnlyList<ExplorerItem> items = await GetFolderItemsAsync(folder, sort, extensions);
+                if (!CanApplyExplorerRequest(version)) return;
+                _folderHistory.Push(_currentFolder);
+                _currentFolder = folder;
+                ExplorerPathText.Text = folder.Name;
+                ExplorerUpButton.IsEnabled = _folderHistory.Count > 0;
+                SetExplorerItems(items);
+                ExplorerSummaryText.Text = items.Count(item => item.Kind == ExplorerItemKind.Folder)
+                    + " folder(s) · " + items.Count(item => item.Kind == ExplorerItemKind.File) + " file(s)";
+            }
+            catch (Exception ex)
+            {
+                if (CanApplyExplorerRequest(version)) ExplorerSummaryText.Text = "Cannot open this location: " + ex.Message;
+            }
         }
 
         private async System.Threading.Tasks.Task RefreshExplorerFolderAsync()
         {
-            if (_currentFolder == null) { await LoadExplorerRootsAsync(); return; }
-            _explorerItems.Clear();
-            _allExplorerItems.Clear();
-            _selectedExplorerFile = null;
-            UpdateExplorerActions();
-            if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
+            StorageFolder folder = _currentFolder;
+            if (folder == null) { await LoadExplorerRootsAsync(); return; }
+            int version = ++_explorerRequestVersion;
+            int sort = SortComboBox.SelectedIndex;
+            bool extensions = ShowExtensionsToggle.IsOn;
             try
             {
-                var folders = await _storageService.GetFoldersAsync(_currentFolder);
-                var files = await _storageService.GetFilesAsync(_currentFolder);
-                int sort = SortComboBox.SelectedIndex;
-                IEnumerable<StorageFolder> orderedFolders = sort == 1 ? folders.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase) : folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
-                if (sort != 2)
-                {
-                    foreach (StorageFolder folder in orderedFolders)
-                        _explorerItems.Add(new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\uE8B7", Folder = folder, Trailing = "\uE76C" });
-                }
-                IEnumerable<StorageFile> orderedFiles = sort == 1 ? files.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase) : files.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
-                foreach (StorageFile file in orderedFiles)
-                {
-                    string name = file.Name;
-                    if (!ShowExtensionsToggle.IsOn && !String.IsNullOrEmpty(file.FileType))
-                        name = System.IO.Path.GetFileNameWithoutExtension(name);
-                    string glyph = file.FileType == ".jpg" || file.FileType == ".jpeg" || file.FileType == ".png" || file.FileType == ".gif" ? "\uEB9F"
-                        : file.FileType == ".mp3" || file.FileType == ".wav" || file.FileType == ".wma" || file.FileType == ".m4a" ? "\uE8D6"
-                        : file.FileType == ".mp4" || file.FileType == ".m4v" ? "\uE714"
-                        : file.FileType == ".pdf" ? "\uEA90"
-                        : file.FileType == ".zip" ? "\uF012" : "\uE8A5";
-                    _explorerItems.Add(new ExplorerItem { Name = name, Description = file.FileType + " · " + file.DisplayType, Glyph = glyph, File = file });
-                }
-                if (sort == 2)
-                    foreach (StorageFolder folder in folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase))
-                        _explorerItems.Insert(0, new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\uE8B7", Folder = folder, Trailing = "\uE76C" });
-                _allExplorerItems.AddRange(_explorerItems);
-                ApplyExplorerFilter();
-                ExplorerSummaryText.Text = folders.Count + " folder(s) · " + files.Count + " file(s)";
+                IReadOnlyList<ExplorerItem> items = await GetFolderItemsAsync(folder, sort, extensions);
+                if (!CanApplyExplorerRequest(version) || !Object.ReferenceEquals(_currentFolder, folder)) return;
+                SetExplorerItems(items);
+                ExplorerPathText.Text = folder.Name;
+                ExplorerUpButton.IsEnabled = _folderHistory.Count > 0;
+                ExplorerSummaryText.Text = items.Count(item => item.Kind == ExplorerItemKind.Folder)
+                    + " folder(s) · " + items.Count(item => item.Kind == ExplorerItemKind.File) + " file(s)";
             }
             catch (Exception ex)
             {
-                ExplorerSummaryText.Text = "Cannot enumerate this location: " + ex.Message;
+                if (CanApplyExplorerRequest(version) && Object.ReferenceEquals(_currentFolder, folder))
+                    ExplorerSummaryText.Text = "Cannot enumerate this location: " + ex.Message;
             }
         }
 
         private async void AppStorage_Click(object sender, RoutedEventArgs e)
         {
+            _showingUsbRoots = false;
             _folderHistory.Clear();
             _currentFolder = null;
             await OpenExplorerFolderAsync(ApplicationData.Current.LocalFolder);
@@ -434,22 +488,36 @@ namespace XPower
 
         private async void UsbStorage_Click(object sender, RoutedEventArgs e)
         {
+            _showingUsbRoots = true;
             await LoadExplorerRootsAsync();
-            if (_explorerItems.Count > 0) _explorerItems.RemoveAt(0);
-            if (_allExplorerItems.Count > 0) _allExplorerItems.RemoveAt(0);
-            ExplorerPathText.Text = "USB DEVICES";
         }
 
         private async void ExplorerUp_Click(object sender, RoutedEventArgs e)
         {
             if (_folderHistory.Count == 0) { await LoadExplorerRootsAsync(); return; }
-            StorageFolder previous = _folderHistory.Pop();
-            _currentFolder = previous;
-            if (previous == null) await LoadExplorerRootsAsync();
-            else
+            StorageFolder previous = _folderHistory.Peek();
+            if (previous == null)
             {
+                _folderHistory.Pop();
+                await LoadExplorerRootsAsync();
+                return;
+            }
+            int version = ++_explorerRequestVersion;
+            try
+            {
+                IReadOnlyList<ExplorerItem> items = await GetFolderItemsAsync(previous, SortComboBox.SelectedIndex, ShowExtensionsToggle.IsOn);
+                if (!CanApplyExplorerRequest(version)) return;
+                _folderHistory.Pop();
+                _currentFolder = previous;
+                SetExplorerItems(items);
+                ExplorerPathText.Text = previous.Name;
                 ExplorerUpButton.IsEnabled = _folderHistory.Count > 0;
-                await RefreshExplorerFolderAsync();
+                ExplorerSummaryText.Text = items.Count(item => item.Kind == ExplorerItemKind.Folder)
+                    + " folder(s) · " + items.Count(item => item.Kind == ExplorerItemKind.File) + " file(s)";
+            }
+            catch (Exception ex)
+            {
+                if (CanApplyExplorerRequest(version)) ExplorerSummaryText.Text = "Cannot return to the previous folder: " + ex.Message;
             }
         }
 
@@ -463,26 +531,23 @@ namespace XPower
         {
             ExplorerItem item = e.ClickedItem as ExplorerItem;
             if (item == null) return;
-            if (item.Folder != null)
-            {
-                _selectedExplorerFile = null;
-                UpdateExplorerActions();
-                await OpenExplorerFolderAsync(item.Folder);
-                return;
-            }
+            if (item.Folder != null) { await OpenExplorerFolderAsync(item.Folder); return; }
             if (item.File == null) return;
-            _selectedExplorerFile = item.File;
+            StorageFile selectedFile = item.File;
+            _selectedExplorerFile = selectedFile;
             UpdateExplorerActions();
+            int version = _explorerRequestVersion;
             try
             {
-                var properties = await item.File.GetBasicPropertiesAsync();
-                ExplorerSummaryText.Text = item.File.Name + " · " + item.File.DisplayType
-                    + " · " + FormatFileSize(properties.Size)
-                    + " · Modified " + properties.DateModified.ToLocalTime().ToString("g");
+                var properties = await selectedFile.GetBasicPropertiesAsync();
+                if (!CanApplyExplorerRequest(version) || !Object.ReferenceEquals(_selectedExplorerFile, selectedFile)) return;
+                ExplorerSummaryText.Text = selectedFile.Name + " · " + selectedFile.DisplayType + " · "
+                    + FormatFileSize(properties.Size) + " · Modified " + properties.DateModified.ToLocalTime().ToString("g");
             }
             catch
             {
-                ExplorerSummaryText.Text = "Selected: " + item.File.Name + " · " + item.File.DisplayType;
+                if (CanApplyExplorerRequest(version) && Object.ReferenceEquals(_selectedExplorerFile, selectedFile))
+                    ExplorerSummaryText.Text = "Selected: " + selectedFile.Name + " · " + selectedFile.DisplayType;
             }
         }
 
@@ -586,17 +651,18 @@ namespace XPower
 
         private async void CopyExplorerFile_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedExplorerFile == null) return;
+            StorageFile source = _selectedExplorerFile;
+            if (source == null) return;
             try
             {
-                StorageFile copied = await _fileOperations.CopyFileAsync(
-                    _selectedExplorerFile,
-                    ApplicationData.Current.LocalFolder);
-                ExplorerSummaryText.Text = "Copied into X-Power App Storage: " + copied.Name;
+                StorageFile copied = await _fileOperations.CopyFileAsync(source, ApplicationData.Current.LocalFolder);
+                if (_isPageActive && Object.ReferenceEquals(_selectedExplorerFile, source))
+                    ExplorerSummaryText.Text = "Copied into Internal storage: " + copied.Name;
             }
             catch (Exception ex)
             {
-                ExplorerSummaryText.Text = "Copy failed: " + ex.Message;
+                if (_isPageActive && Object.ReferenceEquals(_selectedExplorerFile, source))
+                    ExplorerSummaryText.Text = "Copy failed: " + ex.Message;
             }
         }
 
@@ -918,16 +984,6 @@ namespace XPower
             };
             for (int i = 0; i < dark.Length; i++)
                 SetBrush("ThemeColor" + (i + 1).ToString("00") + "Brush", light ? lightColors[i] : dark[i]);
-        }
-
-        private sealed class ExplorerItem
-        {
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public string Glyph { get; set; }
-            public string Trailing { get; set; }
-            public StorageFolder Folder { get; set; }
-            public StorageFile File { get; set; }
         }
 
         private void SetBrush(string key, string hex)
