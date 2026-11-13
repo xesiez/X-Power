@@ -56,7 +56,6 @@ jobs:
 
   build:
     name: Build - Xbox x64 install package
-    needs: test
     runs-on: windows-2022
     steps:
       - name: Checkout
@@ -163,7 +162,7 @@ jobs:
       - name: Upload Xbox sideload package
         uses: actions/upload-artifact@v6
         with:
-          name: X-Power-UWP-x64-Xbox-DevMode
+          name: X-Power-Build-Output-x64
           path: artifacts/XboxInstall/**
           if-no-files-found: error
           retention-days: 14
@@ -177,3 +176,43 @@ jobs:
           path: artifacts/diagnostics/**
           if-no-files-found: warn
           retention-days: 7
+
+  release:
+    name: Release - Xbox x64 installer
+    needs: [test, build]
+    runs-on: windows-2022
+    steps:
+      - name: Download validated build output
+        uses: actions/download-artifact@v6
+        with:
+          name: X-Power-Build-Output-x64
+          path: artifacts/XboxInstall
+
+      - name: Verify release payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = @(Get-ChildItem .\artifacts\XboxInstall -File -Recurse)
+          $app = @($files | Where-Object { $_.Extension -in @(".msix", ".appx") })
+          $cert = @($files | Where-Object { $_.Extension -ieq ".cer" })
+          if ($app.Count -ne 1 -or $cert.Count -ne 1) { throw "Release payload must contain exactly one app package and one signing certificate." }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($app[0].FullName)
+          try {
+            $entry = $zip.GetEntry("AppxManifest.xml")
+            if (-not $entry) { throw "AppxManifest.xml missing from release package." }
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try { [xml]$manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            if ($manifest.Package.Identity.ProcessorArchitecture -ne "x64") { throw "Release package is not x64." }
+          } finally { $zip.Dispose() }
+          $bytes = ($files | Measure-Object Length -Sum).Sum
+          Write-Host ("RELEASE_VALIDATION=PASS FILES={0} SIZE_MB={1}" -f $files.Count, [math]::Round($bytes / 1MB, 2))
+
+      - name: Upload final Xbox x64 installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: X-Power-UWP-x64-Xbox-DevMode
+          path: artifacts/XboxInstall/**
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 9
