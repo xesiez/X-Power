@@ -7,6 +7,7 @@ using Windows.Networking.Connectivity;
 using Windows.Networking.Sockets;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
@@ -255,7 +256,7 @@ namespace XPower
                 var picker = new FileOpenPicker
                 {
                     ViewMode = PickerViewMode.List,
-                    SuggestedStartLocation = PickerLocationId.Music
+                    SuggestedStartLocation = PickerLocationId.Downloads
                 };
                 picker.FileTypeFilter.Add(".mp3");
                 picker.FileTypeFilter.Add(".wav");
