@@ -42,7 +42,11 @@ namespace XPower
             if (rootFrame == null)
             {
                 rootFrame = new Frame();
-                rootFrame.NavigationFailed += (sender, args) => throw args.Exception;
+                rootFrame.NavigationFailed += (sender, args) =>
+                {
+                    args.Handled = true;
+                    ShowRecoveryScreen("File activation failed", args.Exception == null ? "Unknown activation error." : args.Exception.ToString());
+                };
                 Window.Current.Content = rootFrame;
             }
             object parameter = e.Files != null && e.Files.Count > 0 ? e.Files[0] : null;
