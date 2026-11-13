@@ -48,8 +48,15 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          msbuild .\XPower.sln /restore /m /p:Configuration=Release /p:Platform=x64 /p:AppxPackage=true /p:GenerateAppxPackageOnBuild=true /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:AppxPackageSigningEnabled=true "/p:PackageCertificateKeyFile=$env:XPOWER_PFX_PATH" "/p:PackageCertificatePassword=$env:XPOWER_CERT_PASSWORD" "/p:AppxPackageDir=$env:XPOWER_PACKAGE_DIR" /verbosity:minimal
-          if ($LASTEXITCODE -ne 0) { throw "MSBuild packaging failed with exit code $LASTEXITCODE" }
+          $logDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\diagnostics"
+          New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+          $binlog = Join-Path $logDir "xpower-packaging.binlog"
+          $textLog = Join-Path $logDir "xpower-packaging.log"
+
+          msbuild .\XPower.sln /restore /m /p:Configuration=Release /p:Platform=x64 /p:AppxPackage=true /p:GenerateAppxPackageOnBuild=true /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:AppxPackageSigningEnabled=true "/p:PackageCertificateKeyFile=$env:XPOWER_PFX_PATH" "/p:PackageCertificatePassword=$env:XPOWER_CERT_PASSWORD" "/p:AppxPackageDir=$env:XPOWER_PACKAGE_DIR" "/bl:$binlog" /v:diag *> $textLog
+          $buildExitCode = $LASTEXITCODE
+          Get-Content $textLog -Tail 100
+          if ($buildExitCode -ne 0) { throw "MSBuild packaging failed with exit code $buildExitCode. Diagnostic logs are uploaded even on failure." }
 
           $packages = Get-ChildItem -Path $env:XPOWER_PACKAGE_DIR -Filter *.appx -Recurse
           if (-not $packages) { throw "MSBuild completed but no .appx package was found." }
@@ -57,9 +64,19 @@ jobs:
           $packages | ForEach-Object { Write-Host $_.FullName }
 
       - name: Upload Xbox sideload package
+        if: success()
         uses: actions/upload-artifact@v6
         with:
           name: X-Power-UWP-x64-Xbox-DevMode
           path: artifacts/AppPackages/**
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload packaging diagnostics
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: X-Power-Packaging-Diagnostics
+          path: artifacts/diagnostics/**
+          if-no-files-found: warn
+          retention-days: 7
