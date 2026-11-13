@@ -20,7 +20,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="Button">
           <Grid x:Name="Root" RenderTransformOrigin="0.5,0.5">
-            <Grid.VisualStateManager.VisualStateGroups>
+            <VisualStateManager.VisualStateGroups>
               <VisualStateGroup x:Name="CommonStates">
                 <VisualState x:Name="Normal"/>
                 <VisualState x:Name="PointerOver">
@@ -76,7 +76,7 @@
                   </Storyboard>
                 </VisualState>
               </VisualStateGroup>
-            </Grid.VisualStateManager.VisualStateGroups>
+            </VisualStateManager.VisualStateGroups>
             <Grid.RenderTransform>
               <ScaleTransform x:Name="FocusScaleTransform" ScaleX="1" ScaleY="1"/>
             </Grid.RenderTransform>
@@ -104,7 +104,7 @@
     <Setter Property="MinHeight" Value="64"/>
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
     <Setter Property="Padding" Value="20,14"/>
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Background" Value="{StaticResource BrushTransparent}"/>
     <Setter Property="BorderThickness" Value="2"/>
     <Setter Property="FontSize" Value="18"/>
   </Style>
@@ -141,7 +141,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="ListViewItem">
           <Grid x:Name="Root" RenderTransformOrigin="0.5,0.5">
-            <Grid.VisualStateManager.VisualStateGroups>
+            <VisualStateManager.VisualStateGroups>
               <VisualStateGroup x:Name="CommonStates">
                 <VisualState x:Name="Normal"/>
                 <VisualState x:Name="PointerOver">
@@ -197,7 +197,7 @@
                 </VisualState>
                 <VisualState x:Name="PointerFocused"/>
               </VisualStateGroup>
-            </Grid.VisualStateManager.VisualStateGroups>
+            </VisualStateManager.VisualStateGroups>
             <Grid.RenderTransform>
               <ScaleTransform x:Name="ItemScaleTransform" ScaleX="1" ScaleY="1"/>
             </Grid.RenderTransform>
