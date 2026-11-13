@@ -1,28 +1,37 @@
 # X-Power 2.0
 
-A clean, independent Xbox Series X UWP application foundation.
+A new, independent Xbox Series X UWP application for Developer Mode. This repository does not reuse or modify the legacy X-Files codebase.
 
-## Project boundaries
-This repository is the new X-Power project. It does not reuse or modify the legacy X-Files UWP codebase.
+## Current application scope
 
-## Foundation milestone
-- Minimal UWP application shell targeting Xbox Series X Developer Mode
-- Hybrid navigation shell: sidebar + top bar
-- Starter dashboard with storage, recent-items, and quick-access placeholders
-- Basic section navigation and controller-friendly focusable buttons
-- Responsive XAML layout that scales with the available display area
-- Initial dark visual theme
+- Xbox-first XAML interface with Overview, File Explorer, Phone Link, Media Player, and Preferences.
+- Directional focus navigation designed for Xbox controller input.
+- D-pad and left thumbstick navigation use native UWP XY focus; A selects and B returns.
+- File picker selection with duplicate detection based on StorageFile identity. Selection is session-only and does not modify files.
+- Local audio playback for selected MP3, WAV, WMA, and M4A files.
+- Dark and light palettes applied to resource-based and formerly hard-coded UI colors.
+- LAN health probe using an OS-selected TCP port and a read-only `GET /health` response.
 
-This milestone intentionally does **not** implement actual drive enumeration, file operations, phone pairing, file transfer, Download from URL, media playback, or a light-theme switch. Those will be added after the first Xbox build and runtime test pass.
+## Phone Link and security boundaries
 
-## Design workspaces
-- Figma UI file: https://www.figma.com/design/HBekBbLnmyb6gTPw0zQweT
-- MagicPath foundation board: https://www.magicpath.ai/files/471841162215460864
+Phone Link is currently a LAN health check only. Xbox UWP does not support the NetworkInformation connectivity APIs, so the user enters the console IPv4 address from **Settings > Network > Advanced settings**. The app asks the OS to select an available TCP port and displays the health URL.
 
-## Build
-Open `XPower.sln` in Visual Studio with the Universal Windows Platform development workload and Windows 10 SDK installed. Build the `x64` configuration.
-
-GitHub Actions contains an initial Windows x64 compile workflow. A successful run still needs to be confirmed before treating this foundation as build-verified.
+The health endpoint uses HTTP and returns non-sensitive status information only. It does **not** provide HTTPS/WSS, device pairing, authentication, remote control, or file transfer. Do not send secrets or private data to it. Those capabilities require a separately designed and Xbox-tested secure transport before they can be enabled.
 
 ## Platform notes
-This is a UWP app, not a Win32 desktop app. Storage access is subject to Xbox/UWP capabilities and user-granted file access. No unrestricted drive access is assumed.
+
+- This is a UWP app, not a GDK title. Do not add `MicrosoftGame.config`, XVC packaging, or GDK-only networking APIs.
+- `Application.RequiresPointerMode = WhenRequested` makes XY focus navigation the default Xbox interaction mode. UWP maps D-pad and left-stick directions to arrow-key navigation.
+- File access is limited to files explicitly selected through the system picker. No broad file-system access is assumed.
+- The local listener requires `privateNetworkClientServer`. Actual inbound LAN reachability must still be verified on a physical Xbox and the user's network.
+
+## Design workspaces
+
+- Figma: https://www.figma.com/design/g5XvK79Ews947gwcKNZW14
+- MagicPath: https://www.magicpath.ai/files/471841162215460864
+
+## Build and validation
+
+Open `XPower.sln` in Visual Studio with the Universal Windows Platform development workload and Windows 10 SDK installed. Build the `x64` configuration.
+
+GitHub Actions validates project XML/XAML and packages the UWP x64 app for Xbox Developer Mode. A successful CI package is not a substitute for installing and testing the app on a physical Xbox Series X.

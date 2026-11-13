@@ -3,7 +3,7 @@ on:
   push:
     branches: [ main, foundation-v1, ux-rebuild-v2 ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, foundation-v1 ]
   workflow_dispatch:
 jobs:
   build:
@@ -16,6 +16,22 @@ jobs:
         uses: microsoft/setup-msbuild@v3
         with:
           msbuild-architecture: x64
+
+      - name: Validate UWP project metadata and Xbox input policy
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          [xml](Get-Content .\src\XPower.App\Package.appxmanifest -Raw) | Out-Null
+          [xml](Get-Content .\src\XPower.App\XPower.App.csproj -Raw) | Out-Null
+          [xml](Get-Content .\src\XPower.App\App.xaml -Raw) | Out-Null
+          [xml](Get-Content .\src\XPower.App\MainPage.xaml -Raw) | Out-Null
+          $app = Get-Content .\src\XPower.App\App.xaml.cs -Raw
+          $page = Get-Content .\src\XPower.App\MainPage.xaml -Raw
+          $code = Get-Content .\src\XPower.App\MainPage.xaml.cs -Raw
+          if ($app -notmatch 'RequiresPointerMode\s*=\s*ApplicationRequiresPointerMode\.WhenRequested') { throw "Xbox pointer mode must default to XY focus navigation." }
+          if ($page -notmatch 'XYFocusKeyboardNavigation="Enabled"') { throw "XY focus keyboard navigation is not enabled." }
+          if ($code -match 'NetworkInformation\.|GetHostNames\(') { throw "Unsupported Xbox UWP network API call detected." }
+          if ($page -notmatch 'XboxIpTextBox' -or $code -notmatch 'BuildHealthUrl') { throw "Phone Link IPv4 fallback is incomplete." }
 
       - name: Create temporary development signing certificate
         shell: pwsh

@@ -4,7 +4,7 @@
       Background="{StaticResource AppBackgroundBrush}"
       KeyDown="MainPage_KeyDown"
       XYFocusKeyboardNavigation="Enabled">
-  <Grid x:Name="RootLayout" Background="{StaticResource AppBackgroundBrush}">
+  <Grid x:Name="RootLayout" Background="{StaticResource AppBackgroundBrush}" XYFocusKeyboardNavigation="Enabled">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="238"/>
       <ColumnDefinition Width="*"/>
@@ -25,7 +25,7 @@
         </Grid.RowDefinitions>
         <StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Border Width="42" Height="42" CornerRadius="12" Background="#153C45" BorderBrush="#2C7779" BorderThickness="1">
+            <Border Width="42" Height="42" CornerRadius="12" Background="{StaticResource ThemeColor01Brush}" BorderBrush="{StaticResource ThemeColor02Brush}" BorderThickness="1">
               <TextBlock Text="X" FontSize="27" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <StackPanel VerticalAlignment="Center" Spacing="1">
@@ -36,7 +36,7 @@
         </StackPanel>
 
         <TextBlock Grid.Row="2" Text="WORKSPACE" FontSize="10" FontWeight="SemiBold" CharacterSpacing="150" Foreground="{StaticResource SecondaryTextBrush}" Margin="8,0,0,12"/>
-        <Button x:Name="HomeNavButton" Grid.Row="3" Tag="Home" Click="Navigation_Click" HorizontalContentAlignment="Left" Padding="14,13" Background="#173B43" Foreground="{StaticResource AccentBrush}" FontSize="16" BorderThickness="0" Margin="0,0,0,7">
+        <Button x:Name="HomeNavButton" Grid.Row="3" Tag="Home" Click="Navigation_Click" HorizontalContentAlignment="Left" Padding="14,13" Background="{StaticResource ThemeColor03Brush}" Foreground="{StaticResource AccentBrush}" FontSize="16" BorderThickness="0" Margin="0,0,0,7">
           <StackPanel Orientation="Horizontal" Spacing="13"><TextBlock Text="&#xE80F;" FontFamily="Segoe MDL2 Assets" FontSize="18"/><TextBlock Text="Overview"/></StackPanel>
         </Button>
         <Button x:Name="FilesNavButton" Grid.Row="4" Tag="Files" Click="Navigation_Click" HorizontalContentAlignment="Left" Padding="14,13" Background="Transparent" Foreground="{StaticResource SecondaryTextBrush}" FontSize="16" BorderThickness="0" Margin="0,0,0,7">
@@ -78,10 +78,10 @@
           <TextBlock x:Name="BreadcrumbText" Text="X-POWER   /   OVERVIEW" FontSize="10" CharacterSpacing="150" Foreground="{StaticResource SecondaryTextBrush}"/>
           <TextBlock x:Name="PageTitle" Text="Command center" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
         </StackPanel>
-        <Border Grid.Column="1" Background="#15372F" BorderBrush="#2A5C4B" BorderThickness="1" CornerRadius="18" Padding="13,7" VerticalAlignment="Center">
+        <Border Grid.Column="1" Background="{StaticResource ThemeColor04Brush}" BorderBrush="{StaticResource ThemeColor05Brush}" BorderThickness="1" CornerRadius="18" Padding="13,7" VerticalAlignment="Center">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Ellipse Width="7" Height="7" Fill="{StaticResource SuccessBrush}"/>
-            <TextBlock Text="APP ONLINE" FontSize="10" FontWeight="SemiBold" CharacterSpacing="80" Foreground="{StaticResource SuccessBrush}"/>
+            <TextBlock x:Name="AppStatusText" Text="APP READY" FontSize="10" FontWeight="SemiBold" CharacterSpacing="80" Foreground="{StaticResource SuccessBrush}"/>
           </StackPanel>
         </Border>
       </Grid>
@@ -90,7 +90,7 @@
         <Grid>
           <Grid x:Name="HomeView" Visibility="Visible">
             <StackPanel Spacing="20">
-              <Border Background="#122A38" BorderBrush="#286071" BorderThickness="1" CornerRadius="18" Padding="26">
+              <Border Background="{StaticResource ThemeColor06Brush}" BorderBrush="{StaticResource ThemeColor07Brush}" BorderThickness="1" CornerRadius="18" Padding="26">
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions>
                   <StackPanel Spacing="10" VerticalAlignment="Center">
@@ -98,14 +98,14 @@
                     <TextBlock Text="Welcome to your command center." FontSize="31" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" TextWrapping="Wrap"/>
                     <TextBlock Text="A focused workspace for files, phone connectivity and media on Xbox." FontSize="15" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap" MaxWidth="600"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
-                      <Button Tag="Files" Click="Navigation_Click" Background="{StaticResource AccentBrush}" Foreground="#07141D" Padding="18,10" FontWeight="SemiBold" BorderThickness="0" Content="OPEN FILES"/>
-                      <Button Tag="Phone Transfer" Click="Navigation_Click" Background="#214658" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,10" BorderThickness="0" Content="PHONE LINK"/>
+                      <Button Tag="Files" Click="Navigation_Click" Background="{StaticResource AccentBrush}" Foreground="{StaticResource ThemeColor08Brush}" Padding="18,10" FontWeight="SemiBold" BorderThickness="0" Content="OPEN FILES"/>
+                      <Button Tag="Phone Transfer" Click="Navigation_Click" Background="{StaticResource ThemeColor09Brush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,10" BorderThickness="0" Content="PHONE LINK"/>
                     </StackPanel>
                   </StackPanel>
                   <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="170" Height="150">
-                    <Ellipse Width="142" Height="142" Stroke="#34717D" StrokeThickness="1" Opacity="0.8"/>
-                    <Ellipse Width="108" Height="108" Stroke="#3B8D91" StrokeThickness="2" Opacity="0.7"/>
-                    <Ellipse Width="74" Height="74" Fill="#1A4A54" Stroke="{StaticResource AccentBrush}" StrokeThickness="1"/>
+                    <Ellipse Width="142" Height="142" Stroke="{StaticResource ThemeColor10Brush}" StrokeThickness="1" Opacity="0.8"/>
+                    <Ellipse Width="108" Height="108" Stroke="{StaticResource ThemeColor11Brush}" StrokeThickness="2" Opacity="0.7"/>
+                    <Ellipse Width="74" Height="74" Fill="{StaticResource ThemeColor12Brush}" Stroke="{StaticResource AccentBrush}" StrokeThickness="1"/>
                     <TextBlock Text="XP" FontSize="38" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                   </Grid>
                 </Grid>
@@ -121,7 +121,7 @@
                 <Button Grid.Column="0" Tag="Files" Click="Navigation_Click" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
                   <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="18">
                     <StackPanel Spacing="11">
-                      <Border Width="42" Height="42" CornerRadius="11" Background="#173D47" HorizontalAlignment="Left"><TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                      <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource ThemeColor13Brush}" HorizontalAlignment="Left"><TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                       <TextBlock Text="File Explorer" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                       <TextBlock Text="Select and inspect files available to the app." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                       <TextBlock Text="OPEN TOOL  &#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{StaticResource AccentBrush}"/>
@@ -131,17 +131,17 @@
                 <Button Grid.Column="1" Tag="Phone Transfer" Click="Navigation_Click" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
                   <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="18">
                     <StackPanel Spacing="11">
-                      <Border Width="42" Height="42" CornerRadius="11" Background="#282B50" HorizontalAlignment="Left"><TextBlock Text="&#xE8EA;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="#A99AFF" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                      <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource ThemeColor14Brush}" HorizontalAlignment="Left"><TextBlock Text="&#xE8EA;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="{StaticResource ThemeColor15Brush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                       <TextBlock Text="Phone Link" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                       <TextBlock Text="View the console LAN health endpoint and connection status." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
-                      <TextBlock Text="OPEN TOOL  &#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="#A99AFF"/>
+                      <TextBlock Text="OPEN TOOL  &#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{StaticResource ThemeColor15Brush}"/>
                     </StackPanel>
                   </Border>
                 </Button>
                 <Button Grid.Column="2" Tag="Music" Click="Navigation_Click" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
                   <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="18">
                     <StackPanel Spacing="11">
-                      <Border Width="42" Height="42" CornerRadius="11" Background="#173C34" HorizontalAlignment="Left"><TextBlock Text="&#xE8D6;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                      <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource ThemeColor16Brush}" HorizontalAlignment="Left"><TextBlock Text="&#xE8D6;" FontFamily="Segoe MDL2 Assets" FontSize="21" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                       <TextBlock Text="Media Player" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                       <TextBlock Text="Choose a local audio file and play or pause it." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                       <TextBlock Text="OPEN TOOL  &#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{StaticResource SuccessBrush}"/>
@@ -159,7 +159,7 @@
                     <TextBlock Text="The interface is designed around directional navigation, clear focus states and large readable controls. Use the D-pad or left stick to move, A to select and B to return." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                   </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="#132B2A" BorderBrush="#2B5C50" BorderThickness="1" CornerRadius="14" Padding="20">
+                <Border Grid.Column="1" Background="{StaticResource ThemeColor17Brush}" BorderBrush="{StaticResource ThemeColor18Brush}" BorderThickness="1" CornerRadius="14" Padding="20">
                   <StackPanel Spacing="8">
                     <TextBlock Text="LOCAL SERVICE" FontSize="10" FontWeight="SemiBold" CharacterSpacing="130" Foreground="{StaticResource SuccessBrush}"/>
                     <TextBlock Text="LAN health probe" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
@@ -181,17 +181,17 @@
               <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="20">
                 <StackPanel Spacing="14">
                   <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Click="BrowseFiles_Click" Background="{StaticResource AccentBrush}" Foreground="#07141D" Padding="18,11" FontWeight="SemiBold" BorderThickness="0" Content="&#xE8E5;   SELECT FILES"/>
+                    <Button x:Name="BrowseFilesButton" Click="BrowseFiles_Click" Background="{StaticResource AccentBrush}" Foreground="{StaticResource ThemeColor08Brush}" Padding="18,11" FontWeight="SemiBold" BorderThickness="0" Content="&#xE8E5;   SELECT FILES"/>
                     <Button Click="ClearFiles_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,11" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="CLEAR LIST"/>
                   </StackPanel>
                   <TextBlock x:Name="FileSummaryText" Text="No files selected yet." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}"/>
-                  <ListView x:Name="FileListView" MinHeight="220" MaxHeight="390" Background="#0B1422" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" SelectionMode="None">
+                  <ListView x:Name="FileListView" MinHeight="220" MaxHeight="390" Background="{StaticResource ThemeColor19Brush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" SelectionMode="None">
                     <ListView.ItemTemplate>
                       <DataTemplate>
                         <Grid Padding="9,7">
                           <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                           <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="17" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                          <TextBlock Grid.Column="1" Text="{Binding}" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         </Grid>
                       </DataTemplate>
                     </ListView.ItemTemplate>
@@ -205,28 +205,30 @@
           <Grid x:Name="PhoneView" Visibility="Collapsed">
             <StackPanel Spacing="18">
               <StackPanel Spacing="5">
-                <TextBlock Text="PHONE LINK" FontSize="11" FontWeight="SemiBold" CharacterSpacing="150" Foreground="#A99AFF"/>
+                <TextBlock Text="PHONE LINK" FontSize="11" FontWeight="SemiBold" CharacterSpacing="150" Foreground="{StaticResource ThemeColor15Brush}"/>
                 <TextBlock Text="Local network connection" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                <TextBlock Text="Check the Xbox LAN service and copy its health address for a browser connectivity test." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                <TextBlock Text="Enter the Xbox IPv4 address shown in Network Settings, then test the local health endpoint from a phone on the same LAN." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
               </StackPanel>
               <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="22">
                 <StackPanel Spacing="14">
                   <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Ellipse Width="9" Height="9" Fill="{StaticResource SuccessBrush}"/>
-                    <TextBlock Text="LOCAL HTTP SERVICE" FontSize="11" FontWeight="SemiBold" CharacterSpacing="120" Foreground="{StaticResource SuccessBrush}"/>
+                    <Ellipse x:Name="PhoneServiceDot" Width="9" Height="9" Fill="{StaticResource WarningBrush}"/>
+                    <TextBlock x:Name="PhoneServiceLabel" Text="STARTING HEALTH SERVICE" FontSize="11" FontWeight="SemiBold" CharacterSpacing="120" Foreground="{StaticResource SuccessBrush}"/>
                   </StackPanel>
-                  <TextBlock x:Name="PhoneAddressText" Text="Press refresh to detect the Xbox LAN address." FontSize="18" Foreground="{StaticResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                  <TextBlock Text="XBOX IPv4 ADDRESS" FontSize="10" FontWeight="SemiBold" CharacterSpacing="120" Foreground="{StaticResource SecondaryTextBrush}"/>
+                  <TextBox x:Name="XboxIpTextBox" PlaceholderText="Enter Xbox IP from Settings > Network > Advanced settings" FontSize="16" TextChanged="XboxIpTextBox_TextChanged" XYFocusKeyboardNavigation="Enabled"/>
                   <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Click="RefreshNetwork_Click" Background="#554C8B" Foreground="White" Padding="18,11" BorderThickness="0" Content="REFRESH ADDRESS"/>
-                    <Button Click="CopyAddress_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,11" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="COPY HEALTH URL"/>
+                    <Button x:Name="RefreshNetworkButton" Click="RefreshNetwork_Click" Background="{StaticResource ThemeColor20Brush}" Foreground="White" Padding="18,11" BorderThickness="0" Content="BUILD HEALTH URL"/>
+                    <Button x:Name="CopyAddressButton" Click="CopyAddress_Click" IsEnabled="False" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,11" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="COPY HEALTH URL"/>
                   </StackPanel>
-                  <TextBlock x:Name="PhoneStatusText" Text="This is a health-check endpoint only. Secure pairing and file upload are not enabled yet." FontSize="12" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
+                  <TextBlock x:Name="PhoneAddressText" Text="Enter the Xbox IPv4 address, then build the health URL." FontSize="18" Foreground="{StaticResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                  <TextBlock x:Name="PhoneStatusText" Text="HTTP health check only. This does not pair devices or transfer files. Do not send passwords or private data to this endpoint." FontSize="12" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
               </Border>
-              <Border Background="#171C31" BorderBrush="#3D4267" BorderThickness="1" CornerRadius="14" Padding="20">
+              <Border Background="{StaticResource ThemeColor21Brush}" BorderBrush="{StaticResource ThemeColor22Brush}" BorderThickness="1" CornerRadius="14" Padding="20">
                 <StackPanel Spacing="7">
-                  <TextBlock Text="SECURITY NOTE" FontSize="10" FontWeight="SemiBold" CharacterSpacing="130" Foreground="#B8ACFF"/>
-                  <TextBlock Text="We will not expose file upload over an unauthenticated connection. Pairing will be added with a one-time code and a protected transfer flow." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                  <TextBlock Text="SECURITY NOTE" FontSize="10" FontWeight="SemiBold" CharacterSpacing="130" Foreground="{StaticResource ThemeColor23Brush}"/>
+                  <TextBlock Text="This endpoint returns non-sensitive status only. Secure HTTPS pairing, authenticated commands and file transfer are separate features and are not enabled in this build." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
               </Border>
             </StackPanel>
@@ -239,16 +241,16 @@
                 <TextBlock Text="Your local audio space" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                 <TextBlock Text="Select a supported audio file from storage and control playback with the Xbox controller." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
               </StackPanel>
-              <Border Background="#102A2B" BorderBrush="#28615B" BorderThickness="1" CornerRadius="18" Padding="26">
+              <Border Background="{StaticResource ThemeColor24Brush}" BorderBrush="{StaticResource ThemeColor25Brush}" BorderThickness="1" CornerRadius="18" Padding="26">
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
-                  <Border Width="112" Height="112" CornerRadius="56" Background="#1A4A48" BorderBrush="#3B8F83" BorderThickness="2">
+                  <Border Width="112" Height="112" CornerRadius="56" Background="{StaticResource ThemeColor26Brush}" BorderBrush="{StaticResource ThemeColor27Brush}" BorderThickness="2">
                     <TextBlock Text="&#xE8D6;" FontFamily="Segoe MDL2 Assets" FontSize="48" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                   </Border>
                   <TextBlock x:Name="TrackTitleText" Text="Nothing playing" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" TextAlignment="Center"/>
                   <TextBlock x:Name="TrackStatusText" Text="Choose an audio file to begin." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextAlignment="Center"/>
                   <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                    <Button Click="SelectTrack_Click" Background="{StaticResource AccentBrush}" Foreground="#07141D" Padding="18,11" BorderThickness="0" Content="CHOOSE TRACK"/>
-                    <Button Click="PlayTrack_Click" Background="#1D5148" Foreground="White" Padding="18,11" BorderThickness="0" Content="PLAY"/>
+                    <Button x:Name="SelectTrackButton" Click="SelectTrack_Click" Background="{StaticResource AccentBrush}" Foreground="{StaticResource ThemeColor08Brush}" Padding="18,11" BorderThickness="0" Content="CHOOSE TRACK"/>
+                    <Button Click="PlayTrack_Click" Background="{StaticResource ThemeColor28Brush}" Foreground="White" Padding="18,11" BorderThickness="0" Content="PLAY"/>
                     <Button Click="PauseTrack_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,11" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="PAUSE"/>
                     <Button Click="StopTrack_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,11" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="STOP"/>
                   </StackPanel>
@@ -268,7 +270,7 @@
               <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="22">
                 <StackPanel Spacing="18">
                   <StackPanel Orientation="Horizontal" Spacing="16">
-                    <Border Width="42" Height="42" CornerRadius="11" Background="#173D47"><TextBlock Text="&#xE793;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                    <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource ThemeColor13Brush}"><TextBlock Text="&#xE793;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                     <StackPanel VerticalAlignment="Center" Spacing="2">
                       <TextBlock Text="Appearance" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                       <TextBlock Text="Switch between dark and light themes." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
