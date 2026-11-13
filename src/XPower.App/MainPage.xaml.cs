@@ -25,6 +25,7 @@ namespace XPower
     {
         private const int MaxRequestLineLength = 2048;
         private readonly ExplorerStorageService _storageService = new ExplorerStorageService();
+        private readonly FileOperationsService _fileOperations = new FileOperationsService();
         private StreamSocketListener _httpProbeListener;
         private readonly ObservableCollection<ExplorerItem> _explorerItems = new ObservableCollection<ExplorerItem>();
         private readonly List<ExplorerItem> _allExplorerItems = new List<ExplorerItem>();
@@ -576,10 +577,9 @@ namespace XPower
             if (_selectedExplorerFile == null) return;
             try
             {
-                StorageFile copied = await _selectedExplorerFile.CopyAsync(
-                    ApplicationData.Current.LocalFolder,
-                    _selectedExplorerFile.Name,
-                    NameCollisionOption.GenerateUniqueName);
+                StorageFile copied = await _fileOperations.CopyFileAsync(
+                    _selectedExplorerFile,
+                    ApplicationData.Current.LocalFolder);
                 ExplorerSummaryText.Text = "Copied into X-Power App Storage: " + copied.Name;
             }
             catch (Exception ex)
