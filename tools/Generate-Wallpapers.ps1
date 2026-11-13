@@ -124,7 +124,9 @@ public static class XPowerWallpaperGenerator
 
 Add-Type -TypeDefinition $source -ReferencedAssemblies System.Drawing
 $output = Join-Path $PSScriptRoot "..\src\XPower.App\Assets\Wallpapers"
-[XPowerWallpaperGenerator]::Generate((Resolve-Path (New-Item -ItemType Directory -Force -Path $output)).Path)
+$null = New-Item -ItemType Directory -Force -Path $output
+$output = (Resolve-Path $output).Path
+[XPowerWallpaperGenerator]::Generate($output)
 $files = Get-ChildItem $output -Filter *.jpg
 if ($files.Count -ne 8) { throw "Expected eight 4K wallpaper assets, found $($files.Count)." }
 $bytes = ($files | Measure-Object -Property Length -Sum).Sum

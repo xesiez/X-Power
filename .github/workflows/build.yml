@@ -39,7 +39,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Generate-Wallpapers.ps1
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Generate-Wallpapers.ps1
 
       - name: Create temporary development signing certificate
         shell: pwsh
