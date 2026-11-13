@@ -14,6 +14,9 @@ namespace XPower
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            // Set the Xbox controller-first pointer policy before the first page is created.
+            Window.Current.CoreWindow.PointerCursor = null;
+
             Frame rootFrame = Window.Current.Content as Frame;
             if (rootFrame == null)
             {
@@ -25,12 +28,13 @@ namespace XPower
             if (rootFrame.Content == null)
                 rootFrame.Navigate(typeof(MainPage), e.Arguments);
 
+            Window.Current.CoreWindow.PointerCursor = null;
             Window.Current.Activate();
         }
 
         private void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
-            // Keep the foundation lightweight; persistence and background work are later milestones.
+            // Persisted settings and background transfer services will be added with their features.
         }
     }
 }
