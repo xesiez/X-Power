@@ -36,6 +36,8 @@ namespace XPower
         private string _currentSection = "Home";
         private bool _backHandlerAttached;
         private bool _loadingSettings;
+        private bool _explorerRootsLoaded;
+        private bool _healthServiceStarting;
 
         public MainPage()
         {
@@ -43,52 +45,53 @@ namespace XPower
             ExplorerListView.ItemsSource = _explorerItems;
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
-            LoadSettings();
-            ApplyTheme(ThemeToggle.IsOn);
-            ApplyWallpaper(WallpaperComboBox.SelectedIndex);
+            try
+            {
+                LoadSettings();
+                ApplyTheme(ThemeToggle.IsOn);
+            }
+            catch (Exception ex)
+            {
+                AppStatusText.Text = "SETTINGS RESET";
+                try
+                {
+                    ApplicationData.Current.LocalSettings.Values.Clear();
+                    ThemeToggle.IsOn = false;
+                    AccentComboBox.SelectedIndex = 0;
+                    SortComboBox.SelectedIndex = 0;
+                    ShowExtensionsToggle.IsOn = true;
+                    WallpaperComboBox.SelectedIndex = 0;
+                    ApplyTheme(false);
+                }
+                catch
+                {
+                    // The default XAML theme remains usable if local settings are unavailable.
+                }
+            }
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            HomeNavButton.Focus(FocusState.Programmatic);
-            await LoadExplorerRootsAsync();
-            if (!_backHandlerAttached)
-            {
-                SystemNavigationManager.GetForCurrentView().BackRequested += SystemNavigationManager_BackRequested;
-                _backHandlerAttached = true;
-            }
-
-            if (_httpProbeListener != null)
-                return;
-
             try
             {
-                _httpProbeListener = new StreamSocketListener();
-                _httpProbeListener.ConnectionReceived += HttpProbeListener_ConnectionReceived;
-                await _httpProbeListener.BindEndpointAsync(null, String.Empty);
-                _listenerPort = _httpProbeListener.Information.LocalPort;
+                HomeNavButton.Focus(FocusState.Programmatic);
+                if (!_backHandlerAttached)
+                {
+                    SystemNavigationManager.GetForCurrentView().BackRequested += SystemNavigationManager_BackRequested;
+                    _backHandlerAttached = true;
+                }
 
-                NetworkProbeStatus.Text = "Listening on dynamic TCP port " + _listenerPort + " · health endpoint only";
-                PhoneServiceDot.Fill = (Brush)Application.Current.Resources["SuccessBrush"];
-                PhoneServiceLabel.Text = "HEALTH SERVICE LISTENING";
-                PhoneStatusText.Text = "Health service is listening. Enter the Xbox IPv4 address shown in Network Settings to build its URL.";
-                BuildHealthUrl();
+                // Defer image decoding until the first frame is visible.
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                {
+                    try { ApplyWallpaper(WallpaperComboBox.SelectedIndex); }
+                    catch { HomeHeroPanel.Background = (Brush)Application.Current.Resources["ThemeColor06Brush"]; }
+                });
             }
             catch (Exception ex)
             {
-                NetworkProbeStatus.Text = "Local health service unavailable: " + ex.Message;
-                PhoneServiceDot.Fill = (Brush)Application.Current.Resources["DangerBrush"];
-                PhoneServiceLabel.Text = "HEALTH SERVICE UNAVAILABLE";
-                PhoneStatusText.Text = "The local health service could not start. No phone connection is available in this session.";
-                if (_httpProbeListener != null)
-                {
-                    _httpProbeListener.ConnectionReceived -= HttpProbeListener_ConnectionReceived;
-                    _httpProbeListener.Dispose();
-                    _httpProbeListener = null;
-                }
-                _listenerPort = String.Empty;
-                _healthUrl = String.Empty;
-                CopyAddressButton.IsEnabled = false;
+                AppStatusText.Text = "LIMITED STARTUP";
+                SettingsStatusText.Text = "Optional startup feature unavailable: " + ex.Message;
             }
         }
 
@@ -263,8 +266,64 @@ namespace XPower
                 : section == "Music" ? "MEDIA PLAYER" : section.ToUpperInvariant());
 
             FocusSection(section);
+            if (section == "Files" && !_explorerRootsLoaded)
+                LoadExplorerRootsOnDemand();
             if (section == "Phone Transfer")
+            {
                 BuildHealthUrl();
+                if (_httpProbeListener == null && !_healthServiceStarting)
+                    StartHealthServiceOnDemand();
+            }
+        }
+
+        private async void LoadExplorerRootsOnDemand()
+        {
+            try
+            {
+                await LoadExplorerRootsAsync();
+                _explorerRootsLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                ExplorerSummaryText.Text = "Storage browser unavailable: " + ex.Message;
+            }
+        }
+
+        private async void StartHealthServiceOnDemand()
+        {
+            _healthServiceStarting = true;
+            try
+            {
+                _httpProbeListener = new StreamSocketListener();
+                _httpProbeListener.ConnectionReceived += HttpProbeListener_ConnectionReceived;
+                await _httpProbeListener.BindEndpointAsync(null, String.Empty);
+                _listenerPort = _httpProbeListener.Information.LocalPort;
+                NetworkProbeStatus.Text = "Listening on dynamic TCP port " + _listenerPort + " · health endpoint only";
+                PhoneServiceDot.Fill = (Brush)Application.Current.Resources["SuccessBrush"];
+                PhoneServiceLabel.Text = "HEALTH SERVICE LISTENING";
+                PhoneStatusText.Text = "Health service is listening. Enter the Xbox IPv4 address shown in Network Settings to build its URL.";
+                BuildHealthUrl();
+            }
+            catch (Exception ex)
+            {
+                NetworkProbeStatus.Text = "Local health service unavailable: " + ex.Message;
+                PhoneServiceDot.Fill = (Brush)Application.Current.Resources["DangerBrush"];
+                PhoneServiceLabel.Text = "HEALTH SERVICE UNAVAILABLE";
+                PhoneStatusText.Text = "The local health service could not start: " + ex.Message;
+                if (_httpProbeListener != null)
+                {
+                    _httpProbeListener.ConnectionReceived -= HttpProbeListener_ConnectionReceived;
+                    _httpProbeListener.Dispose();
+                    _httpProbeListener = null;
+                }
+                _listenerPort = String.Empty;
+                _healthUrl = String.Empty;
+                CopyAddressButton.IsEnabled = false;
+            }
+            finally
+            {
+                _healthServiceStarting = false;
+            }
         }
 
         private void FocusSection(string section)
@@ -292,6 +351,7 @@ namespace XPower
         {
             _folderHistory.Clear();
             _currentFolder = null;
+            _explorerRootsLoaded = false;
             ExplorerUpButton.IsEnabled = false;
             ExplorerPathText.Text = "STORAGE LOCATIONS";
             _explorerItems.Clear();
@@ -312,6 +372,7 @@ namespace XPower
                 ExplorerSummaryText.Text = "USB storage unavailable: " + ex.Message;
             }
             _allExplorerItems.AddRange(_explorerItems);
+            _explorerRootsLoaded = true;
         }
 
         private async System.Threading.Tasks.Task OpenExplorerFolderAsync(StorageFolder folder)
@@ -755,7 +816,9 @@ namespace XPower
             int safeIndex = Math.Max(0, Math.Min(index, files.Length - 1));
             try
             {
-                var image = new BitmapImage(new Uri("ms-appx:///Assets/Wallpapers/" + files[safeIndex], UriKind.Absolute));
+                var image = new BitmapImage();
+                image.DecodePixelWidth = 1920;
+                image.UriSource = new Uri("ms-appx:///Assets/Wallpapers/" + files[safeIndex], UriKind.Absolute);
                 HomeHeroPanel.Background = new ImageBrush
                 {
                     ImageSource = image,
