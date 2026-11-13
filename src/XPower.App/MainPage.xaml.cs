@@ -38,18 +38,30 @@ namespace XPower
         private IRandomAccessStream _currentTrackStream;
         private string _currentSection = "Home";
         private bool _backHandlerAttached;
-        private bool _loadingSettings;
+        private bool _loadingSettings = true;
+        private bool _isViewReady;
         private bool _explorerRootsLoaded;
         private bool _startingHealthService;
 
         public MainPage()
         {
             // XAML can raise control events while InitializeComponent is still creating
-            // named controls. Suppress persistence until the page is fully initialized.
+            // named controls. Keep settings persistence disabled until the view is ready.
             _loadingSettings = true;
-            InitializeComponent();
-            _loadingSettings = false;
-            ExplorerListView.ItemsSource = _explorerItems;
+            _isViewReady = false;
+            try
+            {
+                InitializeComponent();
+                ExplorerListView.ItemsSource = _explorerItems;
+                _isViewReady = true;
+            }
+            finally
+            {
+                // If XAML initialization fails, the view remains not-ready and settings
+                // handlers cannot persist partially initialized control state.
+                _loadingSettings = false;
+            }
+
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
         }
@@ -853,8 +865,12 @@ namespace XPower
 
         private void SaveSettings()
         {
-            // Never persist settings from XAML initialization or before all controls exist.
-            if (_loadingSettings || ThemeToggle == null || AccentComboBox == null || SortComboBox == null
+            // Exit before touching any XAML control while initialization is incomplete.
+            if (!_isViewReady || _loadingSettings)
+                return;
+
+            // Defensive checks protect against partial teardown or unexpected XAML changes.
+            if (ThemeToggle == null || AccentComboBox == null || SortComboBox == null
                 || ShowExtensionsToggle == null || WallpaperComboBox == null || SettingsStatusText == null)
                 return;
             var values = ApplicationData.Current.LocalSettings.Values;
