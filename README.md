@@ -33,9 +33,9 @@ The health endpoint uses HTTP and returns non-sensitive status information only.
 - Figma: https://www.figma.com/design/g5XvK79Ews947gwcKNZW14
 - MagicPath: https://www.magicpath.ai/files/471841162215460864
 
-## Package size policy
+## Bundled visual library
 
-The x64 sideload package is measured by CI and reported as an artifact-size metric. The project will only grow through real features and useful bundled resources; no padding files, duplicate binaries, or fake payloads are added to satisfy a size target. The requested 20 MB minimum is a release acceptance target and must be met by functional offline content/assets before it is marked achieved.
+The app includes eight original 4K dashboard backdrops. Users can choose a scene in Preferences; the selected wallpaper is saved locally and applied to the command-center hero panel. These are real, selectable UI assets rather than padding files. CI generates the JPEG pack from the checked-in PowerShell source and enforces a 20 MB minimum on the x64 app package itself.
 
 ## Build and validation
 

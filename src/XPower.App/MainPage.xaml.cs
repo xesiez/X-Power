@@ -45,6 +45,7 @@ namespace XPower
             Unloaded += MainPage_Unloaded;
             LoadSettings();
             ApplyTheme(ThemeToggle.IsOn);
+            ApplyWallpaper(WallpaperComboBox.SelectedIndex);
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -737,14 +738,47 @@ namespace XPower
             if (!_loadingSettings) SaveSettings();
         }
 
+        private void WallpaperComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loadingSettings || WallpaperComboBox == null) return;
+            ApplyWallpaper(WallpaperComboBox.SelectedIndex);
+            SaveSettings();
+        }
+
+        private void ApplyWallpaper(int index)
+        {
+            string[] files =
+            {
+                "aurora-core.jpg", "deep-current.jpg", "violet-pulse.jpg", "solar-ember.jpg",
+                "arctic-grid.jpg", "emerald-drift.jpg", "crimson-orbit.jpg", "midnight-circuit.jpg"
+            };
+            int safeIndex = Math.Max(0, Math.Min(index, files.Length - 1));
+            try
+            {
+                var image = new BitmapImage(new Uri("ms-appx:///Assets/Wallpapers/" + files[safeIndex], UriKind.Absolute));
+                HomeHeroPanel.Background = new ImageBrush
+                {
+                    ImageSource = image,
+                    Stretch = Stretch.UniformToFill,
+                    Opacity = 0.48
+                };
+            }
+            catch
+            {
+                HomeHeroPanel.Background = (Brush)Application.Current.Resources["ThemeColor06Brush"];
+            }
+        }
+
         private void ResetSettings_Click(object sender, RoutedEventArgs e)
         {
             ThemeToggle.IsOn = false;
             AccentComboBox.SelectedIndex = 0;
             SortComboBox.SelectedIndex = 0;
             ShowExtensionsToggle.IsOn = true;
+            WallpaperComboBox.SelectedIndex = 0;
             ApplyTheme(false);
             ApplyAccent(0);
+            ApplyWallpaper(0);
             SaveSettings();
             SettingsStatusText.Text = "Preferences reset to defaults.";
         }
@@ -757,12 +791,15 @@ namespace XPower
             object accent = values["AccentIndex"];
             object sort = values["SortIndex"];
             object extensions = values["ShowExtensions"];
+            object wallpaper = values["WallpaperIndex"];
             ThemeToggle.IsOn = theme is bool && (bool)theme;
             AccentComboBox.SelectedIndex = accent is int ? (int)accent : 0;
             SortComboBox.SelectedIndex = sort is int ? (int)sort : 0;
             ShowExtensionsToggle.IsOn = !(extensions is bool) || (bool)extensions;
+            WallpaperComboBox.SelectedIndex = wallpaper is int ? Math.Max(0, Math.Min(7, (int)wallpaper)) : 0;
             _loadingSettings = false;
             ApplyAccent(AccentComboBox.SelectedIndex);
+            ApplyWallpaper(WallpaperComboBox.SelectedIndex);
         }
 
         private void SaveSettings()
@@ -772,6 +809,7 @@ namespace XPower
             values["AccentIndex"] = AccentComboBox.SelectedIndex;
             values["SortIndex"] = SortComboBox.SelectedIndex;
             values["ShowExtensions"] = ShowExtensionsToggle.IsOn;
+            values["WallpaperIndex"] = WallpaperComboBox.SelectedIndex;
             SettingsStatusText.Text = "Preferences saved on this console.";
         }
 

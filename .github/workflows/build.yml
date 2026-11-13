@@ -31,8 +31,15 @@ jobs:
           if ($app -notmatch 'RequiresPointerMode\s*=\s*ApplicationRequiresPointerMode\.WhenRequested') { throw "Xbox pointer mode must default to XY focus navigation." }
           if ($page -notmatch 'XYFocusKeyboardNavigation="Enabled"') { throw "XY focus keyboard navigation is not enabled." }
           if ($code -notmatch 'ApplyExplorerFilter' -or $code -notmatch 'CopyExplorerFile_Click' -or $code -notmatch 'PreviewExplorerFile_Click' -or $code -notmatch 'PlayExplorerFile_Click') { throw "Explorer search, copy, preview or media handoff is incomplete." }
+          if ($page -notmatch 'WallpaperComboBox' -or $code -notmatch 'ApplyWallpaper') { throw "The bundled 4K wallpaper selector is incomplete." }
           if ($code -match 'NetworkInformation\.|GetHostNames\(') { throw "Unsupported Xbox UWP network API call detected." }
           if ($page -notmatch 'XboxIpTextBox' -or $code -notmatch 'BuildHealthUrl') { throw "Phone Link IPv4 fallback is incomplete." }
+
+      - name: Generate X-Power 4K wallpaper pack
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Generate-Wallpapers.ps1
 
       - name: Create temporary development signing certificate
         shell: pwsh
@@ -93,7 +100,7 @@ jobs:
             $sizeMB = [math]::Round($package.Length / 1MB, 2)
             Write-Host ("PACKAGE_SIZE_MB={0} FILE={1}" -f $sizeMB, $package.Name)
             if ($package.Length -lt 20MB) {
-              Write-Warning ("The app package is {0} MB; the 20 MB release target is not yet met. Do not add padding assets." -f $sizeMB)
+              throw ("The x64 app package is {0} MB; the 20 MB functional-content release gate is not met." -f $sizeMB)
             }
           }
           Write-Host "Signing certificate(s):"
