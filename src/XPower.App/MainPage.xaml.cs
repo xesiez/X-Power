@@ -16,6 +16,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace XPower
 {
@@ -297,12 +298,12 @@ namespace XPower
             _selectedExplorerFile = null;
             UpdateExplorerActions();
             if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
-            _explorerItems.Add(new ExplorerItem { Name = "X-Power App Storage", Description = "Private app folder", Glyph = "\\uE8B7", Folder = ApplicationData.Current.LocalFolder, Trailing = "\\uE76C" });
+            _explorerItems.Add(new ExplorerItem { Name = "X-Power App Storage", Description = "Private app folder", Glyph = "\uE8B7", Folder = ApplicationData.Current.LocalFolder, Trailing = "\uE76C" });
             try
             {
                 var devices = await KnownFolders.RemovableDevices.GetFoldersAsync();
                 foreach (StorageFolder device in devices)
-                    _explorerItems.Add(new ExplorerItem { Name = device.Name, Description = "Removable USB device", Glyph = "\\uE88E", Folder = device, Trailing = "\\uE76C" });
+                    _explorerItems.Add(new ExplorerItem { Name = device.Name, Description = "Removable USB device", Glyph = "\uE88E", Folder = device, Trailing = "\uE76C" });
                 ExplorerSummaryText.Text = devices.Count + " USB device(s) detected · App storage available";
             }
             catch (Exception ex)
@@ -339,7 +340,7 @@ namespace XPower
                 if (sort != 2)
                 {
                     foreach (StorageFolder folder in orderedFolders)
-                        _explorerItems.Add(new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\\uE8B7", Folder = folder, Trailing = "\\uE76C" });
+                        _explorerItems.Add(new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\uE8B7", Folder = folder, Trailing = "\uE76C" });
                 }
                 IEnumerable<StorageFile> orderedFiles = sort == 1 ? files.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase) : files.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
                 foreach (StorageFile file in orderedFiles)
@@ -356,7 +357,7 @@ namespace XPower
                 }
                 if (sort == 2)
                     foreach (StorageFolder folder in folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase))
-                        _explorerItems.Insert(0, new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\\uE8B7", Folder = folder, Trailing = "\\uE76C" });
+                        _explorerItems.Insert(0, new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\uE8B7", Folder = folder, Trailing = "\uE76C" });
                 _allExplorerItems.AddRange(_explorerItems);
                 ApplyExplorerFilter();
                 ExplorerSummaryText.Text = folders.Count + " folder(s) · " + files.Count + " file(s)";
@@ -377,7 +378,8 @@ namespace XPower
         private async void UsbStorage_Click(object sender, RoutedEventArgs e)
         {
             await LoadExplorerRootsAsync();
-            _explorerItems.RemoveAt(0);
+            if (_explorerItems.Count > 0) _explorerItems.RemoveAt(0);
+            if (_allExplorerItems.Count > 0) _allExplorerItems.RemoveAt(0);
             ExplorerPathText.Text = "USB DEVICES";
         }
 
@@ -452,6 +454,8 @@ namespace XPower
             bool hasFile = _selectedExplorerFile != null;
             CopyExplorerFileButton.IsEnabled = hasFile;
             string extension = hasFile ? _selectedExplorerFile.FileType.ToLowerInvariant() : String.Empty;
+            PreviewExplorerFileButton.IsEnabled = hasFile
+                && (extension == ".txt" || extension == ".log" || extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".gif");
             PlayExplorerFileButton.IsEnabled = hasFile
                 && (extension == ".mp3" || extension == ".wav" || extension == ".wma" || extension == ".m4a");
         }
@@ -467,6 +471,60 @@ namespace XPower
                 unit++;
             }
             return size.ToString("0.##") + " " + units[unit];
+        }
+
+        private async void PreviewExplorerFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedExplorerFile == null) return;
+            try
+            {
+                string extension = _selectedExplorerFile.FileType.ToLowerInvariant();
+                var dialog = new ContentDialog
+                {
+                    Title = _selectedExplorerFile.Name,
+                    PrimaryButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Primary
+                };
+                if (extension == ".txt" || extension == ".log")
+                {
+                    var properties = await _selectedExplorerFile.GetBasicPropertiesAsync();
+                    if (properties.Size > 1024 * 1024)
+                    {
+                        ExplorerSummaryText.Text = "Preview is limited to text files up to 1 MB.";
+                        return;
+                    }
+                    string content = await FileIO.ReadTextAsync(_selectedExplorerFile);
+                    dialog.Content = new ScrollViewer
+                    {
+                        MaxHeight = 520,
+                        Content = new TextBlock
+                        {
+                            Text = content,
+                            TextWrapping = TextWrapping.Wrap,
+                            FontSize = 14,
+                            Foreground = (Brush)Application.Current.Resources["PrimaryTextBrush"]
+                        }
+                    };
+                }
+                else
+                {
+                    var bitmap = new BitmapImage();
+                    using (var stream = await _selectedExplorerFile.OpenAsync(FileAccessMode.Read))
+                        await bitmap.SetSourceAsync(stream);
+                    dialog.Content = new Image
+                    {
+                        Source = bitmap,
+                        Stretch = Stretch.Uniform,
+                        MaxWidth = 900,
+                        MaxHeight = 520
+                    };
+                }
+                await dialog.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                ExplorerSummaryText.Text = "Preview unavailable: " + ex.Message;
+            }
         }
 
         private async void CopyExplorerFile_Click(object sender, RoutedEventArgs e)

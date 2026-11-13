@@ -30,6 +30,7 @@ jobs:
           $code = Get-Content .\src\XPower.App\MainPage.xaml.cs -Raw
           if ($app -notmatch 'RequiresPointerMode\s*=\s*ApplicationRequiresPointerMode\.WhenRequested') { throw "Xbox pointer mode must default to XY focus navigation." }
           if ($page -notmatch 'XYFocusKeyboardNavigation="Enabled"') { throw "XY focus keyboard navigation is not enabled." }
+          if ($code -notmatch 'ApplyExplorerFilter' -or $code -notmatch 'CopyExplorerFile_Click' -or $code -notmatch 'PreviewExplorerFile_Click' -or $code -notmatch 'PlayExplorerFile_Click') { throw "Explorer search, copy, preview or media handoff is incomplete." }
           if ($code -match 'NetworkInformation\.|GetHostNames\(') { throw "Unsupported Xbox UWP network API call detected." }
           if ($page -notmatch 'XboxIpTextBox' -or $code -notmatch 'BuildHealthUrl') { throw "Phone Link IPv4 fallback is incomplete." }
 

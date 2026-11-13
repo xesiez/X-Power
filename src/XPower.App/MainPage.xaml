@@ -186,6 +186,7 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBox x:Name="ExplorerSearchBox" Width="280" PlaceholderText="Search this folder..." TextChanged="ExplorerSearchBox_TextChanged" />
+                <Button x:Name="PreviewExplorerFileButton" Click="PreviewExplorerFile_Click" IsEnabled="False" Background="{StaticResource ThemeColor14Brush}" Foreground="{StaticResource ThemeColor15Brush}" Padding="15,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="&#xE8A5;  PREVIEW"/>
                 <Button x:Name="CopyExplorerFileButton" Click="CopyExplorerFile_Click" IsEnabled="False" Background="{StaticResource ThemeColor13Brush}" Foreground="{StaticResource AccentBrush}" Padding="15,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="&#xE8C8;  COPY TO APP"/>
                 <Button x:Name="PlayExplorerFileButton" Click="PlayExplorerFile_Click" IsEnabled="False" Background="{StaticResource ThemeColor16Brush}" Foreground="{StaticResource SuccessBrush}" Padding="15,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Content="&#xE768;  PLAY AUDIO"/>
               </StackPanel>
