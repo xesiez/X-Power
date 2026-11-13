@@ -66,7 +66,7 @@ namespace XPower
             }
         }
 
-        private void HttpProbeListener_ConnectionReceived(
+        private async void HttpProbeListener_ConnectionReceived(
             StreamSocketListener sender,
             StreamSocketListenerConnectionReceivedEventArgs args)
         {
