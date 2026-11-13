@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Windows.Storage;
-using Windows.Storage.NameCollisionOption;
 
 namespace XPower.Storage
 {
@@ -11,17 +10,17 @@ namespace XPower.Storage
     /// </summary>
     public sealed class FileOperationsService
     {
-        public Task<StorageFile> CopyFileAsync(StorageFile source, StorageFolder destination)
+        public async Task<StorageFile> CopyFileAsync(StorageFile source, StorageFolder destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
             if (destination == null)
                 throw new ArgumentNullException("destination");
 
-            return source.CopyAsync(
+            return await source.CopyAsync(
                 destination,
                 source.Name,
-                NameCollisionOption.GenerateUniqueName).AsTask();
+                NameCollisionOption.GenerateUniqueName);
         }
     }
 }
