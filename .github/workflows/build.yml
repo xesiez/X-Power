@@ -183,7 +183,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Download validated build output
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: X-Power-Build-Output-x64
           path: artifacts/XboxInstall
