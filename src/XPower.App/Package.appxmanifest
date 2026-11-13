@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" IgnorableNamespaces="uap mp">
-  <Identity Name="XPower.Foundation" Publisher="CN=XPowerFoundation" Version="2.2.1.0" />
+  <Identity Name="XPower.Foundation" Publisher="CN=XPowerFoundation" Version="2.2.2.0" />
   <mp:PhoneIdentity PhoneProductId="c063213d-69f6-4d63-b99e-4e5d41fb0c02" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties><DisplayName>X-Power</DisplayName><PublisherDisplayName>X-Power</PublisherDisplayName><Logo>Assets\StoreLogo.png</Logo></Properties>
   <Dependencies><TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" /></Dependencies>
