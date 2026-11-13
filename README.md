@@ -1,4 +1,4 @@
-# X-Power 2.0
+# X-Power 2.2
 
 A new, independent Xbox Series X UWP application for Developer Mode. This repository does not reuse or modify the legacy X-Files codebase.
 
