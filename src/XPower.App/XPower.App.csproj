@@ -52,6 +52,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Storage\ExplorerStorageService.cs" />
+    <Compile Include="Storage\FileOperationsService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
