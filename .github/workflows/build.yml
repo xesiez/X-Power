@@ -2,7 +2,7 @@ name: X-Power Test and Build
 
 on:
   push:
-    branches: [ main, foundation-v1, ux-rebuild-v2 ]
+    branches: [ main, foundation-v1, ux-rebuild-v2, prep/storage-file-architecture ]
   pull_request:
     branches: [ main, foundation-v1 ]
   workflow_dispatch:
