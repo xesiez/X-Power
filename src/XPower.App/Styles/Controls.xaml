@@ -123,7 +123,10 @@
     <Setter Property="MinHeight" Value="48"/>
     <Setter Property="OnContent" Value="On"/>
     <Setter Property="OffContent" Value="Off"/>
-    <Setter Property="UseSystemFocusVisuals" Value="False"/>
+    <Setter Property="UseSystemFocusVisuals" Value="True"/>
+    <Setter Property="FocusVisualPrimaryThickness" Value="2"/>
+    <Setter Property="FocusVisualSecondaryThickness" Value="1"/>
+    <Setter Property="FocusVisualMargin" Value="0"/>
     <Setter Property="FocusVisualPrimaryBrush" Value="{StaticResource FocusBorderBrush}"/>
     <Setter Property="FocusVisualSecondaryBrush" Value="{StaticResource FocusGlowBrush}"/>
   </Style>
