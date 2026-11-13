@@ -1,7 +1,7 @@
 name: X-Power Foundation Build
 on:
   push:
-    branches: [ main, foundation-v1 ]
+    branches: [ main, foundation-v1, ux-rebuild-v2 ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
