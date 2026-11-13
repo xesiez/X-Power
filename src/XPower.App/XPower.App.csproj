@@ -37,6 +37,13 @@
     <DefineConstants>TRACE;NETFX_CORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Assets\\SplashScreen.png" />
+    <Content Include="Assets\\Square150x150Logo.png" />
+    <Content Include="Assets\\Square44x44Logo.png" />
+    <Content Include="Assets\\StoreLogo.png" />
+    <Content Include="Assets\\Wide310x150Logo.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
