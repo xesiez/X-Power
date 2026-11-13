@@ -87,13 +87,13 @@ public static class XPowerWallpaperGenerator
                 }
             }
 
-            AddFineGrain(bitmap, 100 + index * 7919, 3);
+            AddFineGrain(bitmap, 100 + index * 7919, 9);
             var encoder = ImageCodecInfo.GetImageEncoders();
             ImageCodecInfo jpg = null;
             foreach (var item in encoder) if (item.MimeType == "image/jpeg") jpg = item;
             using (var parameters = new EncoderParameters(1))
             {
-                parameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 95L);
+                parameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 98L);
                 bitmap.Save(path, jpg, parameters);
             }
         }
@@ -131,3 +131,4 @@ $files = Get-ChildItem $output -Filter *.jpg
 if ($files.Count -ne 8) { throw "Expected eight 4K wallpaper assets, found $($files.Count)." }
 $bytes = ($files | Measure-Object -Property Length -Sum).Sum
 Write-Host ("Generated {0} original 4K wallpapers ({1:N2} MB total)." -f $files.Count, ($bytes / 1MB))
+if ($bytes -lt 22MB) { throw "The functional 4K wallpaper library is below 22 MB; increase image detail rather than adding padding files." }
