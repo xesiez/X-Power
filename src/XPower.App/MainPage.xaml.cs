@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Collections.Generic;
 using System.Text;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Networking;
@@ -20,7 +22,9 @@ namespace XPower
     {
         private const int MaxRequestLineLength = 2048;
         private StreamSocketListener _httpProbeListener;
-        private readonly ObservableCollection<StorageFile> _selectedFiles = new ObservableCollection<StorageFile>();
+        private readonly ObservableCollection<ExplorerItem> _explorerItems = new ObservableCollection<ExplorerItem>();
+        private readonly Stack<StorageFolder> _folderHistory = new Stack<StorageFolder>();
+        private StorageFolder _currentFolder;
         private string _listenerPort = String.Empty;
         private string _healthUrl = String.Empty;
         private StorageFile _currentTrack;
@@ -32,7 +36,7 @@ namespace XPower
         public MainPage()
         {
             InitializeComponent();
-            FileListView.ItemsSource = _selectedFiles;
+            ExplorerListView.ItemsSource = _explorerItems;
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
             LoadSettings();
@@ -42,6 +46,7 @@ namespace XPower
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
             HomeNavButton.Focus(FocusState.Programmatic);
+            await LoadExplorerRootsAsync();
             if (!_backHandlerAttached)
             {
                 SystemNavigationManager.GetForCurrentView().BackRequested += SystemNavigationManager_BackRequested;
@@ -249,7 +254,7 @@ namespace XPower
         private void FocusSection(string section)
         {
             Control target = HomeNavButton;
-            if (section == "Files") target = BrowseFilesButton;
+            if (section == "Files") target = AppStorageButton;
             else if (section == "Phone Transfer") target = XboxIpTextBox;
             else if (section == "Music") target = SelectTrackButton;
             else if (section == "Settings") target = ThemeToggle;
@@ -267,53 +272,110 @@ namespace XPower
                 : (Brush)Application.Current.Resources["SecondaryTextBrush"];
         }
 
-        private async void BrowseFiles_Click(object sender, RoutedEventArgs e)
+        private async System.Threading.Tasks.Task LoadExplorerRootsAsync()
         {
+            _folderHistory.Clear();
+            _currentFolder = null;
+            ExplorerUpButton.IsEnabled = false;
+            ExplorerPathText.Text = "STORAGE LOCATIONS";
+            _explorerItems.Clear();
+            _explorerItems.Add(new ExplorerItem { Name = "X-Power App Storage", Description = "Private app folder", Glyph = "\\uE8B7", Folder = ApplicationData.Current.LocalFolder, Trailing = "\\uE76C" });
             try
             {
-                var picker = new FileOpenPicker
-                {
-                    ViewMode = PickerViewMode.List,
-                    SuggestedStartLocation = PickerLocationId.Downloads
-                };
-                picker.FileTypeFilter.Add("*");
-                var files = await picker.PickMultipleFilesAsync();
-                if (files == null || files.Count == 0)
-                {
-                    FileSummaryText.Text = "No files selected. Your existing list is unchanged.";
-                    return;
-                }
-
-                int added = 0;
-                foreach (StorageFile file in files)
-                {
-                    bool alreadySelected = false;
-                    foreach (StorageFile selected in _selectedFiles)
-                    {
-                        if (selected.IsEqual(file))
-                        {
-                            alreadySelected = true;
-                            break;
-                        }
-                    }
-                    if (!alreadySelected)
-                    {
-                        _selectedFiles.Add(file);
-                        added++;
-                    }
-                }
-                FileSummaryText.Text = _selectedFiles.Count + " file(s) selected in this session · " + added + " new";
+                var devices = await KnownFolders.RemovableDevices.GetFoldersAsync();
+                foreach (StorageFolder device in devices)
+                    _explorerItems.Add(new ExplorerItem { Name = device.Name, Description = "Removable USB device", Glyph = "\\uE88E", Folder = device, Trailing = "\\uE76C" });
+                ExplorerSummaryText.Text = devices.Count + " USB device(s) detected · App storage available";
             }
             catch (Exception ex)
             {
-                FileSummaryText.Text = "File picker could not open: " + ex.Message;
+                ExplorerSummaryText.Text = "USB storage unavailable: " + ex.Message;
             }
         }
 
-        private void ClearFiles_Click(object sender, RoutedEventArgs e)
+        private async System.Threading.Tasks.Task OpenExplorerFolderAsync(StorageFolder folder)
         {
-            _selectedFiles.Clear();
-            FileSummaryText.Text = "Selection list cleared. No files were changed on storage.";
+            if (folder == null) return;
+            _folderHistory.Push(_currentFolder);
+            _currentFolder = folder;
+            ExplorerPathText.Text = folder.Name;
+            ExplorerUpButton.IsEnabled = true;
+            await RefreshExplorerFolderAsync();
+        }
+
+        private async System.Threading.Tasks.Task RefreshExplorerFolderAsync()
+        {
+            if (_currentFolder == null) { await LoadExplorerRootsAsync(); return; }
+            _explorerItems.Clear();
+            try
+            {
+                var folders = await _currentFolder.GetFoldersAsync();
+                var files = await _currentFolder.GetFilesAsync();
+                int sort = SortComboBox.SelectedIndex;
+                IEnumerable<StorageFolder> orderedFolders = sort == 1 ? folders.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase) : folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
+                if (sort != 2)
+                {
+                    foreach (StorageFolder folder in orderedFolders)
+                        _explorerItems.Add(new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\\uE8B7", Folder = folder, Trailing = "\\uE76C" });
+                }
+                IEnumerable<StorageFile> orderedFiles = sort == 1 ? files.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase) : files.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
+                foreach (StorageFile file in orderedFiles)
+                {
+                    string name = file.Name;
+                    if (!ShowExtensionsToggle.IsOn && !String.IsNullOrEmpty(file.FileType))
+                        name = System.IO.Path.GetFileNameWithoutExtension(name);
+                    _explorerItems.Add(new ExplorerItem { Name = name, Description = file.FileType + " · " + file.DisplayType, Glyph = "\\uE8A5", File = file });
+                }
+                if (sort == 2)
+                    foreach (StorageFolder folder in folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase))
+                        _explorerItems.Insert(0, new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\\uE8B7", Folder = folder, Trailing = "\\uE76C" });
+                ExplorerSummaryText.Text = folders.Count + " folder(s) · " + files.Count + " file(s)";
+            }
+            catch (Exception ex)
+            {
+                ExplorerSummaryText.Text = "Cannot enumerate this location: " + ex.Message;
+            }
+        }
+
+        private async void AppStorage_Click(object sender, RoutedEventArgs e)
+        {
+            _folderHistory.Clear();
+            _currentFolder = null;
+            await OpenExplorerFolderAsync(ApplicationData.Current.LocalFolder);
+        }
+
+        private async void UsbStorage_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadExplorerRootsAsync();
+            _explorerItems.RemoveAt(0);
+            ExplorerPathText.Text = "USB DEVICES";
+        }
+
+        private async void ExplorerUp_Click(object sender, RoutedEventArgs e)
+        {
+            if (_folderHistory.Count == 0) { await LoadExplorerRootsAsync(); return; }
+            StorageFolder previous = _folderHistory.Pop();
+            _currentFolder = previous;
+            if (previous == null) await LoadExplorerRootsAsync();
+            else
+            {
+                ExplorerUpButton.IsEnabled = _folderHistory.Count > 0;
+                await RefreshExplorerFolderAsync();
+            }
+        }
+
+        private async void ExplorerRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentFolder == null) await LoadExplorerRootsAsync();
+            else await RefreshExplorerFolderAsync();
+        }
+
+        private async void ExplorerListView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            ExplorerItem item = e.ClickedItem as ExplorerItem;
+            if (item == null) return;
+            if (item.Folder != null) await OpenExplorerFolderAsync(item.Folder);
+            else if (item.File != null) ExplorerSummaryText.Text = "Selected: " + item.File.Name + " · " + item.File.DisplayType + " · file actions will be added in a later stage.";
         }
 
         private void RefreshNetwork_Click(object sender, RoutedEventArgs e)
@@ -554,6 +616,16 @@ namespace XPower
             };
             for (int i = 0; i < dark.Length; i++)
                 SetBrush("ThemeColor" + (i + 1).ToString("00") + "Brush", light ? lightColors[i] : dark[i]);
+        }
+
+        private sealed class ExplorerItem
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public string Glyph { get; set; }
+            public string Trailing { get; set; }
+            public StorageFolder Folder { get; set; }
+            public StorageFile File { get; set; }
         }
 
         private void SetBrush(string key, string hex)

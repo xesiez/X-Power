@@ -172,31 +172,35 @@
           </Grid>
 
           <Grid x:Name="FilesView" Visibility="Collapsed">
-            <StackPanel Spacing="18">
+            <StackPanel Spacing="16">
               <StackPanel Spacing="5">
                 <TextBlock Text="FILE EXPLORER" FontSize="11" FontWeight="SemiBold" CharacterSpacing="150" Foreground="{StaticResource AccentBrush}"/>
-                <TextBlock Text="Choose files you want to inspect" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                <TextBlock Text="Xbox/UWP grants access through the system file picker. This view lists only files you explicitly select." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                <TextBlock Text="Browse available storage" FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                <TextBlock Text="Browse X-Power app storage and connected USB devices. Xbox keeps system and other apps' private folders protected." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
               </StackPanel>
-              <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="20">
-                <StackPanel Spacing="14">
-                  <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button x:Name="BrowseFilesButton" Click="BrowseFiles_Click" Background="{StaticResource AccentBrush}" Foreground="{StaticResource ThemeColor08Brush}" Padding="18,11" FontWeight="SemiBold" BorderThickness="0" Content="&#xE8E5;   SELECT FILES"/>
-                    <Button Click="ClearFiles_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="18,11" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="CLEAR LIST"/>
-                  </StackPanel>
-                  <TextBlock x:Name="FileSummaryText" Text="No files selected yet." FontSize="13" Foreground="{StaticResource SecondaryTextBrush}"/>
-                  <ListView x:Name="FileListView" MinHeight="220" MaxHeight="390" Background="{StaticResource ThemeColor19Brush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" SelectionMode="None">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Button x:Name="AppStorageButton" Click="AppStorage_Click" Background="{StaticResource ThemeColor13Brush}" Foreground="{StaticResource AccentBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE8B7;  APP STORAGE"/>
+                <Button x:Name="UsbStorageButton" Click="UsbStorage_Click" Background="{StaticResource ThemeColor14Brush}" Foreground="{StaticResource ThemeColor15Brush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE88E;  USB DEVICES"/>
+                <Button x:Name="ExplorerUpButton" Click="ExplorerUp_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE74A;  UP" IsEnabled="False"/>
+                <Button Click="ExplorerRefresh_Click" Background="{StaticResource PanelAltBrush}" Foreground="{StaticResource PrimaryTextBrush}" Padding="15,10" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" Content="&#xE72C;  REFRESH"/>
+              </StackPanel>
+              <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="16">
+                <StackPanel Spacing="10">
+                  <TextBlock x:Name="ExplorerPathText" Text="STORAGE LOCATIONS" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                  <TextBlock x:Name="ExplorerSummaryText" Text="Loading storage…" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
+                  <ListView x:Name="ExplorerListView" MinHeight="300" MaxHeight="500" Background="{StaticResource ThemeColor19Brush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" SelectionMode="None" IsItemClickEnabled="True" ItemClick="ExplorerListView_ItemClick">
                     <ListView.ItemTemplate>
                       <DataTemplate>
-                        <Grid Padding="9,7">
-                          <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                          <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="17" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                          <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <Grid Padding="10,8">
+                          <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                          <Border Width="34" Height="34" CornerRadius="9" Background="{StaticResource ThemeColor13Brush}"><TextBlock Text="{Binding Glyph}" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2"><TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/><TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource SecondaryTextBrush}"/></StackPanel>
+                          <TextBlock Grid.Column="2" Text="{Binding Trailing}" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{StaticResource SecondaryTextBrush}" VerticalAlignment="Center" Margin="12,0,4,0"/>
                         </Grid>
                       </DataTemplate>
                     </ListView.ItemTemplate>
                   </ListView>
-                  <TextBlock Text="Selecting a file does not move, upload or delete it." FontSize="11" Foreground="{StaticResource WarningBrush}"/>
+                  <TextBlock Text="The full Xbox system drive and other apps' private folders are not accessible to UWP apps." FontSize="11" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
               </Border>
             </StackPanel>
