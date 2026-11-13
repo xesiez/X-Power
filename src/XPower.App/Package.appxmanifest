@@ -10,9 +10,11 @@
       <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
       <uap:SplashScreen Image="Assets\SplashScreen.png" />
     </uap:VisualElements>
+    <Extensions><uap:Extension Category="windows.fileTypeAssociation"><uap:FileTypeAssociation Name="xpowerfiles"><uap:DisplayName>X-Power supported files</uap:DisplayName><uap:Logo>Assets\StoreLogo.png</uap:Logo><uap:SupportedFileTypes><uap:FileType>.txt</uap:FileType><uap:FileType>.log</uap:FileType><uap:FileType>.jpg</uap:FileType><uap:FileType>.jpeg</uap:FileType><uap:FileType>.png</uap:FileType><uap:FileType>.gif</uap:FileType><uap:FileType>.mp3</uap:FileType><uap:FileType>.wav</uap:FileType><uap:FileType>.wma</uap:FileType><uap:FileType>.m4a</uap:FileType><uap:FileType>.mp4</uap:FileType><uap:FileType>.m4v</uap:FileType><uap:FileType>.pdf</uap:FileType><uap:FileType>.zip</uap:FileType></uap:SupportedFileTypes></uap:FileTypeAssociation></uap:Extension></Extensions>
   </Application></Applications>
   <Capabilities>
     <Capability Name="internetClient" />
     <Capability Name="privateNetworkClientServer" />
+    <uap:Capability Name="removableStorage" />
   </Capabilities>
 </Package>

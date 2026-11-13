@@ -31,6 +31,20 @@ namespace XPower
             Window.Current.Activate();
         }
 
+        protected override void OnFileActivated(FileActivatedEventArgs e)
+        {
+            Frame rootFrame = Window.Current.Content as Frame;
+            if (rootFrame == null)
+            {
+                rootFrame = new Frame();
+                rootFrame.NavigationFailed += (sender, args) => throw args.Exception;
+                Window.Current.Content = rootFrame;
+            }
+            object parameter = e.Files != null && e.Files.Count > 0 ? e.Files[0] : null;
+            rootFrame.Navigate(typeof(MainPage), parameter);
+            Window.Current.Activate();
+        }
+
         private void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
             // Persisted settings and background transfer services will be added with their features.
