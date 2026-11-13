@@ -17,12 +17,14 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
+using XPower.Storage;
 
 namespace XPower
 {
     public sealed partial class MainPage : Page
     {
         private const int MaxRequestLineLength = 2048;
+        private readonly ExplorerStorageService _storageService = new ExplorerStorageService();
         private StreamSocketListener _httpProbeListener;
         private readonly ObservableCollection<ExplorerItem> _explorerItems = new ObservableCollection<ExplorerItem>();
         private readonly List<ExplorerItem> _allExplorerItems = new List<ExplorerItem>();
@@ -329,17 +331,28 @@ namespace XPower
             _selectedExplorerFile = null;
             UpdateExplorerActions();
             if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
-            _explorerItems.Add(new ExplorerItem { Name = "X-Power App Storage", Description = "Private app folder", Glyph = "\uE8B7", Folder = ApplicationData.Current.LocalFolder, Trailing = "\uE76C" });
             try
             {
-                var devices = await KnownFolders.RemovableDevices.GetFoldersAsync();
-                foreach (StorageFolder device in devices)
-                    _explorerItems.Add(new ExplorerItem { Name = device.Name, Description = "Removable USB device", Glyph = "\uE88E", Folder = device, Trailing = "\uE76C" });
-                ExplorerSummaryText.Text = devices.Count + " USB device(s) detected · App storage available";
+                IReadOnlyList<StorageRoot> roots = await _storageService.GetRootsAsync();
+                int removableCount = 0;
+                foreach (StorageRoot root in roots)
+                {
+                    bool isRemovable = root.Kind == StorageRootKind.Removable;
+                    if (isRemovable) removableCount++;
+                    _explorerItems.Add(new ExplorerItem
+                    {
+                        Name = root.Name,
+                        Description = root.Description,
+                        Glyph = isRemovable ? "\uE88E" : "\uE8B7",
+                        Folder = root.Folder,
+                        Trailing = "\uE76C"
+                    });
+                }
+                ExplorerSummaryText.Text = removableCount + " USB device(s) detected · Internal storage available";
             }
             catch (Exception ex)
             {
-                ExplorerSummaryText.Text = "USB storage unavailable: " + ex.Message;
+                ExplorerSummaryText.Text = "Storage locations unavailable: " + ex.Message;
             }
             _allExplorerItems.AddRange(_explorerItems);
         }
@@ -364,8 +377,8 @@ namespace XPower
             if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
             try
             {
-                var folders = await _currentFolder.GetFoldersAsync();
-                var files = await _currentFolder.GetFilesAsync();
+                var folders = await _storageService.GetFoldersAsync(_currentFolder);
+                var files = await _storageService.GetFilesAsync(_currentFolder);
                 int sort = SortComboBox.SelectedIndex;
                 IEnumerable<StorageFolder> orderedFolders = sort == 1 ? folders.OrderByDescending(v => v.Name, StringComparer.OrdinalIgnoreCase) : folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase);
                 if (sort != 2)
