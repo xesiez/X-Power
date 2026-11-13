@@ -62,10 +62,19 @@ jobs:
           Get-Content $textLog -Tail 100
           if ($buildExitCode -ne 0) { throw "MSBuild packaging failed with exit code $buildExitCode. Diagnostic logs are uploaded even on failure." }
 
-          $packages = Get-ChildItem -Path $env:XPOWER_PACKAGE_DIR -Filter *.appx -Recurse
-          if (-not $packages) { throw "MSBuild completed but no .appx package was found." }
-          Write-Host "Generated package(s):"
+          $packages = Get-ChildItem -Path $env:XPOWER_PACKAGE_DIR -File -Recurse | Where-Object {
+            ($_.Extension -ieq ".appx" -or $_.Extension -ieq ".msix") -and
+            $_.FullName -notmatch '[\\/]+Dependencies[\\/]+'
+          }
+          if (-not $packages) { throw "MSBuild completed but no installable .appx or .msix application package was found outside the Dependencies folder." }
+
+          $certificates = Get-ChildItem -Path $env:XPOWER_PACKAGE_DIR -Filter *.cer -File -Recurse
+          if (-not $certificates) { throw "The package signing certificate (.cer) was not found." }
+
+          Write-Host "Verified application package(s):"
           $packages | ForEach-Object { Write-Host $_.FullName }
+          Write-Host "Signing certificate(s):"
+          $certificates | ForEach-Object { Write-Host $_.FullName }
 
       - name: Upload Xbox sideload package
         if: success()
