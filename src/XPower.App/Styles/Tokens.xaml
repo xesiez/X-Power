@@ -19,6 +19,11 @@
   <Color x:Key="ColorTextSecondary">#B5BDC8</Color>
   <Color x:Key="ColorTextMuted">#858F9D</Color>
 
+  <Color x:Key="ColorGamepadA">#39E879</Color>
+  <Color x:Key="ColorGamepadB">#F05B66</Color>
+  <Color x:Key="ColorGamepadX">#168BFF</Color>
+  <Color x:Key="ColorGamepadY">#FFB547</Color>
+
   <!-- Opaque brushes are the compatibility baseline for all surfaces. -->
   <SolidColorBrush x:Key="BrushBackground" Color="{StaticResource ColorBackground}" />
   <SolidColorBrush x:Key="BrushSurface" Color="{StaticResource ColorSurface}" />
@@ -31,6 +36,10 @@
   <SolidColorBrush x:Key="BrushWarning" Color="{StaticResource ColorWarning}" />
   <SolidColorBrush x:Key="BrushDanger" Color="{StaticResource ColorDanger}" />
   <SolidColorBrush x:Key="BrushInfo" Color="{StaticResource ColorInfo}" />
+  <SolidColorBrush x:Key="BrushGamepadA" Color="{StaticResource ColorGamepadA}" />
+  <SolidColorBrush x:Key="BrushGamepadB" Color="{StaticResource ColorGamepadB}" />
+  <SolidColorBrush x:Key="BrushGamepadX" Color="{StaticResource ColorGamepadX}" />
+  <SolidColorBrush x:Key="BrushGamepadY" Color="{StaticResource ColorGamepadY}" />
   <SolidColorBrush x:Key="BrushTextPrimary" Color="{StaticResource ColorTextPrimary}" />
   <SolidColorBrush x:Key="BrushTextSecondary" Color="{StaticResource ColorTextSecondary}" />
   <SolidColorBrush x:Key="BrushTextMuted" Color="{StaticResource ColorTextMuted}" />
