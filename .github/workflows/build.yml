@@ -193,9 +193,9 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $files = @(Get-ChildItem .\artifacts\XboxInstall -File -Recurse)
-          $app = @($files | Where-Object { $_.Extension -in @(".msix", ".appx") })
+          $app = @($files | Where-Object { $_.Extension -in @(".msix", ".appx") -and $_.FullName -notmatch '[\\/]+Dependencies[\\/]+' })
           $cert = @($files | Where-Object { $_.Extension -ieq ".cer" })
-          if ($app.Count -ne 1 -or $cert.Count -ne 1) { throw "Release payload must contain exactly one app package and one signing certificate." }
+          if ($app.Count -ne 1 -or $cert.Count -lt 1) { throw "Release payload must contain exactly one main app package and at least one signing certificate." }
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = [System.IO.Compression.ZipFile]::OpenRead($app[0].FullName)
           try {
