@@ -24,6 +24,7 @@ namespace XPower
         private const int MaxRequestLineLength = 2048;
         private StreamSocketListener _httpProbeListener;
         private readonly ObservableCollection<ExplorerItem> _explorerItems = new ObservableCollection<ExplorerItem>();
+        private readonly List<ExplorerItem> _allExplorerItems = new List<ExplorerItem>();
         private readonly Stack<StorageFolder> _folderHistory = new Stack<StorageFolder>();
         private StorageFolder _currentFolder;
         private string _listenerPort = String.Empty;
@@ -292,6 +293,7 @@ namespace XPower
             ExplorerUpButton.IsEnabled = false;
             ExplorerPathText.Text = "STORAGE LOCATIONS";
             _explorerItems.Clear();
+            _allExplorerItems.Clear();
             _selectedExplorerFile = null;
             UpdateExplorerActions();
             if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
@@ -307,6 +309,7 @@ namespace XPower
             {
                 ExplorerSummaryText.Text = "USB storage unavailable: " + ex.Message;
             }
+            _allExplorerItems.AddRange(_explorerItems);
         }
 
         private async System.Threading.Tasks.Task OpenExplorerFolderAsync(StorageFolder folder)
@@ -323,6 +326,7 @@ namespace XPower
         {
             if (_currentFolder == null) { await LoadExplorerRootsAsync(); return; }
             _explorerItems.Clear();
+            _allExplorerItems.Clear();
             _selectedExplorerFile = null;
             UpdateExplorerActions();
             if (ExplorerSearchBox != null) ExplorerSearchBox.Text = String.Empty;
@@ -353,6 +357,8 @@ namespace XPower
                 if (sort == 2)
                     foreach (StorageFolder folder in folders.OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase))
                         _explorerItems.Insert(0, new ExplorerItem { Name = folder.Name, Description = "Folder", Glyph = "\\uE8B7", Folder = folder, Trailing = "\\uE76C" });
+                _allExplorerItems.AddRange(_explorerItems);
+                ApplyExplorerFilter();
                 ExplorerSummaryText.Text = folders.Count + " folder(s) · " + files.Count + " file(s)";
             }
             catch (Exception ex)
@@ -423,16 +429,22 @@ namespace XPower
 
         private void ExplorerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string query = ExplorerSearchBox.Text == null ? String.Empty : ExplorerSearchBox.Text.Trim();
-            if (_currentFolder == null) return;
-            foreach (var item in _explorerItems.ToList())
+            ApplyExplorerFilter();
+        }
+
+        private void ApplyExplorerFilter()
+        {
+            string query = ExplorerSearchBox == null || ExplorerSearchBox.Text == null
+                ? String.Empty : ExplorerSearchBox.Text.Trim();
+            _explorerItems.Clear();
+            foreach (ExplorerItem item in _allExplorerItems)
             {
-                bool visible = String.IsNullOrEmpty(query)
-                    || item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
-                if (!visible) _explorerItems.Remove(item);
+                if (String.IsNullOrEmpty(query)
+                    || item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+                    _explorerItems.Add(item);
             }
             if (!String.IsNullOrEmpty(query))
-                ExplorerSummaryText.Text = "Search results in the current folder · " + _explorerItems.Count + " match(es). Refresh to restore the full listing.";
+                ExplorerSummaryText.Text = "Search results in the current folder · " + _explorerItems.Count + " match(es).";
         }
 
         private void UpdateExplorerActions()
