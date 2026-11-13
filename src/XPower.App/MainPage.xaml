@@ -1,6 +1,6 @@
 <Page x:Class="XPower.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{StaticResource AppBackgroundBrush}"
       KeyDown="MainPage_KeyDown"
       XYFocusKeyboardNavigation="Enabled">
@@ -273,7 +273,7 @@
                       <TextBlock Text="Appearance" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                       <TextBlock Text="Switch between dark and light themes." FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
                     </StackPanel>
-                    <ToggleSwitch x:Name="ThemeToggle" Header="Light theme" VerticalAlignment="Center" Margin="Auto,0,0,0" Toggled="ThemeToggle_Toggled"/>
+                    <ToggleSwitch x:Name="ThemeToggle" Header="Light theme" VerticalAlignment="Center" HorizontalAlignment="Right" Toggled="ThemeToggle_Toggled"/>
                   </StackPanel>
                   <Border Height="1" Background="{StaticResource BorderBrush}"/>
                   <StackPanel Spacing="5">
