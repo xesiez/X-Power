@@ -36,6 +36,8 @@ namespace XPower
         private string _currentSection = "Home";
         private bool _backHandlerAttached;
         private bool _loadingSettings;
+        private bool _explorerRootsLoaded;
+        private bool _startingHealthService;
 
         public MainPage()
         {
@@ -43,31 +45,43 @@ namespace XPower
             ExplorerListView.ItemsSource = _explorerItems;
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
-            LoadSettings();
-            ApplyTheme(ThemeToggle.IsOn);
-            ApplyWallpaper(WallpaperComboBox.SelectedIndex);
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
             HomeNavButton.Focus(FocusState.Programmatic);
-            await LoadExplorerRootsAsync();
             if (!_backHandlerAttached)
             {
                 SystemNavigationManager.GetForCurrentView().BackRequested += SystemNavigationManager_BackRequested;
                 _backHandlerAttached = true;
             }
 
-            if (_httpProbeListener != null)
-                return;
+            // Keep first-frame startup local and lightweight. Optional storage and network work
+            // starts only when the corresponding section is opened.
+            try
+            {
+                LoadSettings();
+                ApplyTheme(ThemeToggle.IsOn);
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => ApplyWallpaper(WallpaperComboBox.SelectedIndex));
+            }
+            catch (Exception ex)
+            {
+                SettingsStatusText.Text = "Preferences could not be loaded; defaults are active. " + ex.Message;
+                try { ApplyTheme(false); } catch { }
+            }
+        }
 
+        private async void StartHealthService()
+        {
+            if (_httpProbeListener != null || _startingHealthService)
+                return;
+            _startingHealthService = true;
             try
             {
                 _httpProbeListener = new StreamSocketListener();
                 _httpProbeListener.ConnectionReceived += HttpProbeListener_ConnectionReceived;
                 await _httpProbeListener.BindEndpointAsync(null, String.Empty);
                 _listenerPort = _httpProbeListener.Information.LocalPort;
-
                 NetworkProbeStatus.Text = "Listening on dynamic TCP port " + _listenerPort + " · health endpoint only";
                 PhoneServiceDot.Fill = (Brush)Application.Current.Resources["SuccessBrush"];
                 PhoneServiceLabel.Text = "HEALTH SERVICE LISTENING";
@@ -89,6 +103,10 @@ namespace XPower
                 _listenerPort = String.Empty;
                 _healthUrl = String.Empty;
                 CopyAddressButton.IsEnabled = false;
+            }
+            finally
+            {
+                _startingHealthService = false;
             }
         }
 
@@ -263,8 +281,16 @@ namespace XPower
                 : section == "Music" ? "MEDIA PLAYER" : section.ToUpperInvariant());
 
             FocusSection(section);
+            if (section == "Files" && !_explorerRootsLoaded)
+            {
+                _explorerRootsLoaded = true;
+                LoadExplorerRootsAsync();
+            }
             if (section == "Phone Transfer")
+            {
+                StartHealthService();
                 BuildHealthUrl();
+            }
         }
 
         private void FocusSection(string section)
@@ -799,7 +825,6 @@ namespace XPower
             WallpaperComboBox.SelectedIndex = wallpaper is int ? Math.Max(0, Math.Min(7, (int)wallpaper)) : 0;
             _loadingSettings = false;
             ApplyAccent(AccentComboBox.SelectedIndex);
-            ApplyWallpaper(WallpaperComboBox.SelectedIndex);
         }
 
         private void SaveSettings()
