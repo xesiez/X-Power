@@ -271,4 +271,92 @@
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="CornerRadius" Value="12"/>
   </Style>
+
+  <Style x:Key="StorageRootInternalBadgeStyle" TargetType="Border" BasedOn="{StaticResource ControllerHintBadgeStyle}">
+    <Setter Property="Background" Value="#243927"/>
+    <Setter Property="BorderBrush" Value="#6639E879"/>
+  </Style>
+  <Style x:Key="StorageRootRemovableBadgeStyle" TargetType="Border" BasedOn="{StaticResource ControllerHintBadgeStyle}">
+    <Setter Property="Background" Value="#202D3B"/>
+    <Setter Property="BorderBrush" Value="#66168BFF"/>
+  </Style>
+
+  <DataTemplate x:Key="StorageRootInternalCardTemplate">
+    <Border Style="{StaticResource StorageRootCardBorderStyle}">
+      <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Border Style="{StaticResource StorageRootInternalBadgeStyle}" HorizontalAlignment="Left">
+          <TextBlock Text="APP-PRIVATE" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccess}"/>
+        </Border>
+        <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Spacing="5">
+          <TextBlock Text="{Binding Name}" Style="{StaticResource CardTitleTextStyle}"/>
+          <TextBlock Text="{Binding Description}" Style="{StaticResource MetadataTextStyle}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </DataTemplate>
+
+  <DataTemplate x:Key="StorageRootRemovableCardTemplate">
+    <Border Style="{StaticResource StorageRootCardBorderStyle}">
+      <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Border Style="{StaticResource StorageRootRemovableBadgeStyle}" HorizontalAlignment="Left">
+          <TextBlock Text="REMOVABLE USB" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushAccentBright}"/>
+        </Border>
+        <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Spacing="5">
+          <TextBlock Text="{Binding Name}" Style="{StaticResource CardTitleTextStyle}"/>
+          <TextBlock Text="{Binding Description}" Style="{StaticResource MetadataTextStyle}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </DataTemplate>
+
+  <DataTemplate x:Key="ExplorerListRowTemplate">
+    <Border Style="{StaticResource ExplorerListRowBorderStyle}">
+      <Grid ColumnSpacing="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="44"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Border Width="40" Height="40" CornerRadius="8" Background="{StaticResource BrushSurfaceSecondary}" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource ConsoleIconFontFamily}" FontSize="21"
+                     Foreground="{StaticResource BrushAccentBright}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+          <TextBlock Text="{Binding Name}" Style="{StaticResource FileRowTitleTextStyle}"/>
+          <TextBlock Text="{Binding Description}" Style="{StaticResource MetadataTextStyle}" TextTrimming="CharacterEllipsis" MaxLines="1"/>
+        </StackPanel>
+        <TextBlock Grid.Column="2" Text="{Binding Trailing}" Style="{StaticResource MetadataTextStyle}" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+  </DataTemplate>
+
+  <DataTemplate x:Key="ControllerHintBarTemplate">
+    <Border Style="{StaticResource ControllerHintBarStyle}">
+      <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Style="{StaticResource ControllerHintBadgeStyle}" Background="#243927"><TextBlock Text="A" Foreground="{StaticResource BrushGamepadA}" Style="{StaticResource ControllerHintTextStyle}"/></Border>
+          <TextBlock Text="Select" Style="{StaticResource ControllerHintTextStyle}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Style="{StaticResource ControllerHintBadgeStyle}" Background="#382327"><TextBlock Text="B" Foreground="{StaticResource BrushGamepadB}" Style="{StaticResource ControllerHintTextStyle}"/></Border>
+          <TextBlock Text="Back" Style="{StaticResource ControllerHintTextStyle}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Style="{StaticResource ControllerHintBadgeStyle}" Background="#1D2D40"><TextBlock Text="X" Foreground="{StaticResource BrushGamepadX}" Style="{StaticResource ControllerHintTextStyle}"/></Border>
+          <TextBlock Text="Actions" Style="{StaticResource ControllerHintTextStyle}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Style="{StaticResource ControllerHintBadgeStyle}" Background="#383222"><TextBlock Text="Y" Foreground="{StaticResource BrushGamepadY}" Style="{StaticResource ControllerHintTextStyle}"/></Border>
+          <TextBlock Text="More" Style="{StaticResource ControllerHintTextStyle}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Style="{StaticResource ControllerHintBadgeStyle}"><TextBlock Text="LB" Style="{StaticResource ControllerHintTextStyle}"/></Border>
+          <TextBlock Text="Previous" Style="{StaticResource ControllerHintTextStyle}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Style="{StaticResource ControllerHintBadgeStyle}"><TextBlock Text="RB" Style="{StaticResource ControllerHintTextStyle}"/></Border>
+          <TextBlock Text="Next" Style="{StaticResource ControllerHintTextStyle}"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+  </DataTemplate>
+
 </ResourceDictionary>
